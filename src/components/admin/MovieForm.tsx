@@ -14,8 +14,8 @@ interface MovieFormProps {
         audio: string;
         size: string;
         plot: string;
-        director: string;
-        cast: string;
+        director: string | null;
+        cast: string | null;
         posterUrl: string;
         categories: string[];
         screenshots: string[];
@@ -93,11 +93,11 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-neutral-400">Director</label>
-                        <input name="director" type="text" defaultValue={initialData?.director} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" />
+                        <input name="director" type="text" defaultValue={initialData?.director ?? ''} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" />
                     </div>
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-neutral-400">Cast</label>
-                        <input name="cast" type="text" defaultValue={initialData?.cast} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" />
+                        <input name="cast" type="text" defaultValue={initialData?.cast ?? ''} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" />
                     </div>
                 </div>
             </div>
