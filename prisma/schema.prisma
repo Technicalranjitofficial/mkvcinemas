@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Movie {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  year        Int
+  rating      Float    @default(0)
+  quality     String   // e.g. "720p HEVC"
+  audio       String   // e.g. "Dual Audio"
+  size        String   // e.g. "1.4GB"
+  plot        String
+  director    String?
+  cast        String?
+  posterUrl   String
+  screenshots String[]
+  categories  String[] // e.g. ["Bollywood", "Action"]
+  
+  // Embedded download links structure
+  downloadLinks DownloadLink[]
+  
+  // Embedded streaming links structure
+  streamLinks   StreamLink[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+type DownloadLink {
+  label String // e.g. "720p GDrive"
+  url   String
+  color String // for UI button color
+}
+
+type StreamLink {
+  server String // e.g. "Server 1"
+  url    String // e.g. "https://..."
+}
