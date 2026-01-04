@@ -6,7 +6,8 @@ import { notFound } from 'next/navigation';
 
 import { Metadata } from 'next';
 
-export const dynamic = 'force-dynamic';
+// Revalidate every 5 minutes for movie pages
+export const revalidate = 300;
 
 interface Props {
     params: Promise<{ id: string }>;

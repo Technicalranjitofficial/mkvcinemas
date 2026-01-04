@@ -3,7 +3,8 @@ import Sidebar from '@/components/Sidebar';
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 
-export const dynamic = 'force-dynamic';
+// Revalidate every 5 minutes for category pages
+export const revalidate = 300;
 
 export default async function CategoryPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
