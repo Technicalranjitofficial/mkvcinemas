@@ -2,7 +2,7 @@
 
 import { Plus, Trash, Save, Search, Loader2, TrendingUp, Flame } from 'lucide-react';
 import { useState, useTransition, useEffect } from 'react';
-import { searchTmdb, getTmdbDetails, getTrendingMovies } from '@/app/actions/tmdb';
+import { searchTmdb, getTmdbDetails, getTrendingMovies, getMoviesByLanguage, suggestAudio } from '@/app/actions/tmdb';
 import type { TmdbSearchResult } from '@/app/actions/tmdb';
 
 const ALL_CATEGORIES = ['Bollywood', 'Hollywood', 'South Indian', 'Web Series', 'Dual Audio', 'Action', 'Thriller', 'Comedy'];
@@ -62,6 +62,7 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
     const [tmdbResults, setTmdbResults] = useState<TmdbSearchResult[]>([]);
     const [trendingMovies, setTrendingMovies] = useState<TmdbSearchResult[]>([]);
     const [loadingTrending, setLoadingTrending] = useState(true);
+    const [activeTab, setActiveTab] = useState<'trending' | 'bollywood' | 'hollywood' | 'south'>('trending');
     const [isPending, startTransition] = useTransition();
 
     useEffect(() => {
@@ -70,6 +71,17 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
             setLoadingTrending(false);
         });
     }, []);
+
+    const handleTabChange = (tab: typeof activeTab) => {
+        setActiveTab(tab);
+        if (tab === 'trending') return;
+        setLoadingTrending(true);
+        const langMap: Record<string, string> = { bollywood: 'hi', hollywood: 'en', south: 'ta' };
+        getMoviesByLanguage(langMap[tab]).then((movies) => {
+            setTrendingMovies(movies);
+            setLoadingTrending(false);
+        });
+    };
 
     const handleTmdbSearch = () => {
         if (!tmdbQuery.trim()) return;
@@ -93,6 +105,9 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
             setCast(castList);
             if (details.poster_path) setPosterUrl(`https://image.tmdb.org/t/p/w500${details.poster_path}`);
             setTmdbId(String(result.id));
+            // Auto-suggest audio based on original language
+            const suggested = suggestAudio(details.original_language ?? result.original_language ?? 'en');
+            setAudio(suggested);
             const backdrops = (details.images?.backdrops ?? [])
                 .slice(0, 4)
                 .map(b => `https://image.tmdb.org/t/p/w780${b.file_path}`);
@@ -180,9 +195,23 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
                 {/* Trending movies grid (shown when no search is active) */}
                 {tmdbResults.length === 0 && (
                     <div>
-                        <div className="flex items-center gap-2 mb-2">
-                            <Flame size={14} className="text-orange-400" />
-                            <span className="text-xs font-semibold text-orange-400 uppercase tracking-wider">Trending This Week</span>
+                        {/* Category Tabs */}
+                        <div className="flex items-center gap-1 mb-3 border-b border-neutral-800 pb-2">
+                            {([
+                                { key: 'trending', label: '🔥 Trending' },
+                                { key: 'bollywood', label: '🎬 Bollywood' },
+                                { key: 'hollywood', label: '🎥 Hollywood' },
+                                { key: 'south', label: '🌟 South Indian' },
+                            ] as const).map(tab => (
+                                <button
+                                    key={tab.key}
+                                    type="button"
+                                    onClick={() => handleTabChange(tab.key)}
+                                    className={`px-3 py-1 rounded text-xs font-semibold transition-colors ${activeTab === tab.key ? 'bg-blue-600 text-white' : 'text-neutral-400 hover:text-white hover:bg-neutral-800'}`}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
                         </div>
                         {loadingTrending ? (
                             <div className="flex items-center justify-center py-8 text-neutral-500 gap-2">
