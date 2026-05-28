@@ -8,6 +8,9 @@ interface VideoEmbedPlayerProps {
   media: EmbedQuery;
 }
 
+// Providers that support sandbox (do NOT show "sandbox not allowed" errors)
+const SANDBOXED_PROVIDERS: ProviderKey[] = ['vidsrc', 'smashy', 'embedsu', 'twoembed'];
+
 export default function VideoEmbedPlayer({ media }: VideoEmbedPlayerProps) {
   const [activeProvider, setActiveProvider] = useState<ProviderKey>('videasy');
 
@@ -44,6 +47,9 @@ export default function VideoEmbedPlayer({ media }: VideoEmbedPlayerProps) {
           allowFullScreen
           allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
           referrerPolicy="no-referrer"
+          {...(SANDBOXED_PROVIDERS.includes(activeProvider)
+            ? { sandbox: 'allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-presentation' }
+            : {})}
         />
       </div>
 

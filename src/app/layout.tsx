@@ -75,38 +75,57 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
-                // Block window.open popups (used by ad scripts)
-                var _origOpen = window.open;
-                window.open = function(url, name, features) {
-                  // Allow only same-origin opens (e.g. OAuth flows)
-                  try {
-                    if (url && typeof url === 'string' && !url.startsWith('/') && !url.startsWith(window.location.origin)) {
-                      return null;
-                    }
-                  } catch(e) {}
-                  return _origOpen.apply(this, arguments);
-                };
+                // 1. Completely kill window.open — the #1 popup vector
+                window.open = function() { return null; };
 
-                // Re-focus the page when ads try to blur it (tab-under attacks)
+                // 2. Popup-under / tab-under attack: re-focus immediately on blur
+                var _blurLocked = false;
                 window.addEventListener('blur', function() {
-                  setTimeout(function() { window.focus(); }, 0);
+                  if (_blurLocked) return;
+                  _blurLocked = true;
+                  window.focus();
+                  setTimeout(function() { _blurLocked = false; }, 100);
                 });
 
-                // Block common ad redirect patterns on the document
+                // 3. visibilitychange: if user is still on page but ad stole focus
+                document.addEventListener('visibilitychange', function() {
+                  if (!document.hidden) window.focus();
+                });
+
+                // 4. Block any _blank anchor that isn't explicitly marked safe
                 document.addEventListener('click', function(e) {
-                  var target = e.target;
-                  if (!target) return;
-                  var anchor = target.closest && target.closest('a[href]');
-                  if (!anchor) return;
-                  var href = anchor.getAttribute('href') || '';
-                  // Block external links that open in _blank from non-site elements
-                  if (anchor.target === '_blank' && !anchor.closest('[data-safe-link]')) {
-                    var isSameOrigin = href.startsWith('/') || href.startsWith(window.location.origin);
-                    if (!isSameOrigin) {
-                      e.stopPropagation();
-                    }
+                  var el = e.target;
+                  while (el && el.tagName !== 'A') el = el.parentElement;
+                  if (!el || el.tagName !== 'A') return;
+                  var href = el.getAttribute('href') || '';
+                  var isExternal = href && !href.startsWith('/') && !href.startsWith(window.location.origin) && !href.startsWith('#') && !href.startsWith('mailto:');
+                  if (isExternal && el.target === '_blank' && !el.hasAttribute('data-safe')) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
                   }
                 }, true);
+
+                // 5. MutationObserver: remove injected full-screen ad overlays
+                function killAdOverlay(node) {
+                  if (!node || node.nodeType !== 1) return;
+                  if (node.dataset && node.dataset.appRoot) return; // never touch our own app
+                  try {
+                    var s = window.getComputedStyle(node);
+                    var z = parseInt(s.zIndex, 10);
+                    if ((s.position === 'fixed' || s.position === 'absolute') && z > 99999) {
+                      node.remove();
+                      return;
+                    }
+                  } catch(e) {}
+                }
+                var mo = new MutationObserver(function(mutations) {
+                  mutations.forEach(function(m) {
+                    m.addedNodes.forEach(killAdOverlay);
+                  });
+                });
+                document.addEventListener('DOMContentLoaded', function() {
+                  mo.observe(document.body, { childList: true, subtree: false });
+                });
               })();
             `,
           }}
