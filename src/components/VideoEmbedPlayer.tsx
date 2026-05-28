@@ -9,7 +9,7 @@ interface VideoEmbedPlayerProps {
 }
 
 export default function VideoEmbedPlayer({ media }: VideoEmbedPlayerProps) {
-  const [activeProvider, setActiveProvider] = useState<ProviderKey>('vidsrc');
+  const [activeProvider, setActiveProvider] = useState<ProviderKey>('videasy');
 
   const getEmbedUrl = (): string => {
     const provider = EMBED_PROVIDERS[activeProvider];
@@ -42,7 +42,7 @@ export default function VideoEmbedPlayer({ media }: VideoEmbedPlayerProps) {
           src={getEmbedUrl()}
           className="absolute inset-0 w-full h-full border-0"
           allowFullScreen
-          scrolling="no"
+          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
         />
       </div>
 

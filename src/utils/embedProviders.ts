@@ -8,6 +8,13 @@ export interface EmbedQuery {
 }
 
 export const EMBED_PROVIDERS = {
+  videasy: {
+    name: 'Videasy',
+    getMovieUrl: (id: string) =>
+      `https://player.videasy.net/movie/${id}?color=FF0000&overlay=true`,
+    getTvUrl: (id: string, s: number, e: number) =>
+      `https://player.videasy.net/tv/${id}/${s}/${e}?color=FF0000&episodeSelector=false&nextEpisode=false&autoplayNextEpisode=false&overlay=true`,
+  },
   vidsrc: {
     name: 'VidSrc',
     getMovieUrl: (id: string) => `https://vidsrc.to/embed/movie/${id}`,
