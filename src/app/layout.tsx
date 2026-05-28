@@ -40,6 +40,15 @@ export const metadata: Metadata = {
     locale: 'en_US',
     type: 'website',
   },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@mkvcinemas',
+    title: 'MKVCinemas - Download Movies & Web Series',
+    description: 'Download Movies & Web Series in HD. Free and Fast on MKVCinemas.',
+  },
+  alternates: {
+    canonical: 'https://mkvcinemas.world',
+  },
   robots: {
     index: true,
     follow: true,
@@ -61,6 +70,47 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        {/* Anti-popup & Ad-block script — runs before any third-party code */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                // Block window.open popups (used by ad scripts)
+                var _origOpen = window.open;
+                window.open = function(url, name, features) {
+                  // Allow only same-origin opens (e.g. OAuth flows)
+                  try {
+                    if (url && typeof url === 'string' && !url.startsWith('/') && !url.startsWith(window.location.origin)) {
+                      return null;
+                    }
+                  } catch(e) {}
+                  return _origOpen.apply(this, arguments);
+                };
+
+                // Re-focus the page when ads try to blur it (tab-under attacks)
+                window.addEventListener('blur', function() {
+                  setTimeout(function() { window.focus(); }, 0);
+                });
+
+                // Block common ad redirect patterns on the document
+                document.addEventListener('click', function(e) {
+                  var target = e.target;
+                  if (!target) return;
+                  var anchor = target.closest && target.closest('a[href]');
+                  if (!anchor) return;
+                  var href = anchor.getAttribute('href') || '';
+                  // Block external links that open in _blank from non-site elements
+                  if (anchor.target === '_blank' && !anchor.closest('[data-safe-link]')) {
+                    var isSameOrigin = href.startsWith('/') || href.startsWith(window.location.origin);
+                    if (!isSameOrigin) {
+                      e.stopPropagation();
+                    }
+                  }
+                }, true);
+              })();
+            `,
+          }}
+        />
         {/* Google Analytics */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-P2JWSP7GYG"></script>
         <script

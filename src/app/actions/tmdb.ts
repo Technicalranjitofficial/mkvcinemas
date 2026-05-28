@@ -59,3 +59,20 @@ export async function getTmdbDetails(tmdbId: number): Promise<TmdbMovieDetails |
         return null;
     }
 }
+
+export async function getTrendingMovies(): Promise<TmdbSearchResult[]> {
+    const apiKey = process.env.TMDB_API_KEY;
+    if (!apiKey || apiKey === 'your_tmdb_api_key_here') return [];
+
+    try {
+        const res = await fetch(
+            `https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&language=en-US`,
+            { next: { revalidate: 3600 } }
+        );
+        if (!res.ok) return [];
+        const data = await res.json();
+        return (data.results ?? []).slice(0, 20);
+    } catch {
+        return [];
+    }
+}

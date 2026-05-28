@@ -30,11 +30,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
         title: `Download ${movie.title} (${movie.year}) ${movie.quality} ${movie.audio} - MKVCinemas`,
         description: movie.plot.substring(0, 160),
+        keywords: [
+            movie.title,
+            `${movie.title} download`,
+            `${movie.title} ${movie.year}`,
+            `${movie.title} ${movie.quality}`,
+            `${movie.title} ${movie.audio}`,
+            ...(movie.categories ?? []),
+            'MKVCinemas',
+        ],
+        alternates: {
+            canonical: `https://mkvcinemas.world/movie/${movie.id}`,
+        },
         openGraph: {
             title: `${movie.title} (${movie.year}) Download`,
             description: movie.plot.substring(0, 200),
-            images: [movie.posterUrl],
+            images: [{ url: movie.posterUrl, width: 500, height: 750, alt: movie.title }],
             type: 'video.movie',
+            url: `https://mkvcinemas.world/movie/${movie.id}`,
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: `${movie.title} (${movie.year}) - MKVCinemas`,
+            description: movie.plot.substring(0, 160),
+            images: [movie.posterUrl],
         },
     };
 }

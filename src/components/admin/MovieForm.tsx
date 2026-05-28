@@ -1,11 +1,13 @@
 'use client';
 
-import { Plus, Trash, Save, Search, Loader2 } from 'lucide-react';
-import { useState, useTransition } from 'react';
-import { searchTmdb, getTmdbDetails } from '@/app/actions/tmdb';
+import { Plus, Trash, Save, Search, Loader2, TrendingUp, Flame } from 'lucide-react';
+import { useState, useTransition, useEffect } from 'react';
+import { searchTmdb, getTmdbDetails, getTrendingMovies } from '@/app/actions/tmdb';
 import type { TmdbSearchResult } from '@/app/actions/tmdb';
 
 const ALL_CATEGORIES = ['Bollywood', 'Hollywood', 'South Indian', 'Web Series', 'Dual Audio', 'Action', 'Thriller', 'Comedy'];
+const QUALITY_OPTIONS = ['480p', '720p', '720p HEVC', '1080p', '1080p HEVC', '1080p x265', '2160p 4K', '4K HDR', 'BluRay 480p', 'BluRay 720p', 'BluRay 1080p'];
+const AUDIO_OPTIONS = ['Hindi', 'English', 'Dual Audio [Hin-Eng]', 'Dual Audio [Hin-Tamil]', 'Dual Audio [Hin-Tel]', 'Multi Audio', 'Tamil', 'Telugu', 'Hindi Dubbed', 'English Subtitles'];
 const TMDB_GENRE_MAP: Record<string, string> = {
     'Action': 'Action',
     'Adventure': 'Action',
@@ -46,6 +48,8 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
     const [cast, setCast] = useState(initialData?.cast || '');
     const [posterUrl, setPosterUrl] = useState(initialData?.posterUrl || '');
     const [tmdbId, setTmdbId] = useState(initialData?.tmdbId || '');
+    const [quality, setQuality] = useState(initialData?.quality || '');
+    const [audio, setAudio] = useState(initialData?.audio || '');
     const [selectedCategories, setSelectedCategories] = useState<string[]>(initialData?.categories || []);
 
     // Dynamic arrays
@@ -56,7 +60,16 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
     // TMDB search state
     const [tmdbQuery, setTmdbQuery] = useState('');
     const [tmdbResults, setTmdbResults] = useState<TmdbSearchResult[]>([]);
+    const [trendingMovies, setTrendingMovies] = useState<TmdbSearchResult[]>([]);
+    const [loadingTrending, setLoadingTrending] = useState(true);
     const [isPending, startTransition] = useTransition();
+
+    useEffect(() => {
+        getTrendingMovies().then((movies) => {
+            setTrendingMovies(movies);
+            setLoadingTrending(false);
+        });
+    }, []);
 
     const handleTmdbSearch = () => {
         if (!tmdbQuery.trim()) return;
@@ -138,6 +151,8 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
                         Search
                     </button>
                 </div>
+
+                {/* Search results */}
                 {tmdbResults.length > 0 && (
                     <div className="bg-black border border-neutral-800 rounded divide-y divide-neutral-800 max-h-64 overflow-y-auto">
                         {tmdbResults.map(result => (
@@ -161,6 +176,54 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
                         ))}
                     </div>
                 )}
+
+                {/* Trending movies grid (shown when no search is active) */}
+                {tmdbResults.length === 0 && (
+                    <div>
+                        <div className="flex items-center gap-2 mb-2">
+                            <Flame size={14} className="text-orange-400" />
+                            <span className="text-xs font-semibold text-orange-400 uppercase tracking-wider">Trending This Week</span>
+                        </div>
+                        {loadingTrending ? (
+                            <div className="flex items-center justify-center py-8 text-neutral-500 gap-2">
+                                <Loader2 size={16} className="animate-spin" /> Loading trending movies...
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-72 overflow-y-auto pr-1">
+                                {trendingMovies.map(movie => (
+                                    <button
+                                        key={movie.id}
+                                        type="button"
+                                        onClick={() => handleTmdbSelect(movie)}
+                                        disabled={isPending}
+                                        className="group relative rounded overflow-hidden border border-neutral-800 hover:border-blue-500 transition-colors text-left"
+                                    >
+                                        {movie.poster_path ? (
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img
+                                                src={`https://image.tmdb.org/t/p/w185${movie.poster_path}`}
+                                                alt={movie.title}
+                                                className="w-full aspect-[2/3] object-cover"
+                                            />
+                                        ) : (
+                                            <div className="w-full aspect-[2/3] bg-neutral-800 flex items-center justify-center text-neutral-600 text-xs p-1 text-center">{movie.title}</div>
+                                        )}
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-1.5">
+                                            <p className="text-white text-[10px] font-semibold leading-tight line-clamp-2">{movie.title}</p>
+                                            <p className="text-yellow-400 text-[10px]">⭐ {movie.vote_average?.toFixed(1)}</p>
+                                        </div>
+                                        <div className="absolute top-1 right-1 bg-black/70 text-yellow-400 text-[9px] font-bold px-1 rounded">
+                                            {movie.release_date?.split('-')[0]}
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                        <p className="text-xs text-neutral-600 mt-2 flex items-center gap-1">
+                            <TrendingUp size={11} /> Click any poster to auto-fill the form · Quality, Audio &amp; Size must be filled manually
+                        </p>
+                    </div>
+                )}
             </div>
 
             {/* Basic Info */}
@@ -179,11 +242,29 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
                 </div>
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-neutral-400">Quality Label</label>
-                    <input required name="quality" type="text" defaultValue={initialData?.quality} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" placeholder="e.g. 1080p HEVC" />
+                    <select
+                        required
+                        name="quality"
+                        value={quality}
+                        onChange={e => setQuality(e.target.value)}
+                        className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2 text-white"
+                    >
+                        <option value="" disabled>Select quality...</option>
+                        {QUALITY_OPTIONS.map(q => <option key={q} value={q}>{q}</option>)}
+                    </select>
                 </div>
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-neutral-400">Audio</label>
-                    <input required name="audio" type="text" defaultValue={initialData?.audio} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" placeholder="e.g. Dual Audio [Hin-Eng]" />
+                    <select
+                        required
+                        name="audio"
+                        value={audio}
+                        onChange={e => setAudio(e.target.value)}
+                        className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2 text-white"
+                    >
+                        <option value="" disabled>Select audio...</option>
+                        {AUDIO_OPTIONS.map(a => <option key={a} value={a}>{a}</option>)}
+                    </select>
                 </div>
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-neutral-400">Size</label>

@@ -43,6 +43,7 @@ export default function VideoEmbedPlayer({ media }: VideoEmbedPlayerProps) {
           className="absolute inset-0 w-full h-full border-0"
           allowFullScreen
           allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+          referrerPolicy="no-referrer"
         />
       </div>
 
