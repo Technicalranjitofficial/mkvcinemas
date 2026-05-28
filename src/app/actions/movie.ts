@@ -176,3 +176,72 @@ export async function bulkImportMovies(
     revalidatePath('/admin/dashboard');
     return result;
 }
+
+export interface TmdbBulkMovie {
+    tmdbId: string;
+    title: string;
+    year: number;
+    rating: number;
+    posterUrl: string;
+    plot: string;
+    original_language: string;
+    /** Override auto-assigned categories (e.g. force ['Web Series'] for TV shows) */
+    forceCategories?: string[];
+}
+
+export async function bulkImportFromTmdb(
+    movies: TmdbBulkMovie[],
+    quality: string,
+    audio: string,
+    size: string,
+): Promise<{ success: number; skipped: number; errors: string[] }> {
+    const result = { success: 0, skipped: 0, errors: [] as string[] };
+
+    // Map original_language to category
+    const langToCat: Record<string, string[]> = {
+        hi: ['Bollywood'],
+        en: ['Hollywood'],
+        ta: ['South Indian'],
+        te: ['South Indian'],
+        ml: ['South Indian'],
+        kn: ['South Indian'],
+    };
+
+    for (const movie of movies) {
+        try {
+            // Skip duplicates by tmdbId
+            const existing = await prisma.movie.findFirst({ where: { tmdbId: movie.tmdbId } });
+            if (existing) { result.skipped++; continue; }
+
+            const categories = movie.forceCategories ?? langToCat[movie.original_language] ?? [];
+            if (!movie.forceCategories && audio.toLowerCase().includes('dual')) categories.push('Dual Audio');
+
+            await prisma.movie.create({
+                data: {
+                    title: movie.title,
+                    year: movie.year,
+                    rating: movie.rating,
+                    quality,
+                    audio,
+                    size: size || 'N/A',
+                    plot: movie.plot || '',
+                    director: '',
+                    cast: '',
+                    posterUrl: movie.posterUrl,
+                    tmdbId: movie.tmdbId,
+                    screenshots: [],
+                    categories,
+                    downloadLinks: [],
+                    streamLinks: [],
+                },
+            });
+            result.success++;
+        } catch (e) {
+            result.errors.push(`"${movie.title}": ${e instanceof Error ? e.message : 'Unknown error'}`);
+        }
+    }
+
+    revalidatePath('/');
+    revalidatePath('/admin/dashboard');
+    return result;
+}

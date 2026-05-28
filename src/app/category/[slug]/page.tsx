@@ -2,9 +2,93 @@ import MovieCard from '@/components/MovieCard';
 import Sidebar from '@/components/Sidebar';
 import prisma from '@/lib/prisma';
 import { notFound } from 'next/navigation';
+import { Metadata } from 'next';
+import { movieSlug } from '@/lib/slug';
 
 // Revalidate every 5 minutes for category pages
 export const revalidate = 300;
+
+const BASE_URL = 'https://mkvcinemas.world';
+
+const CATEGORY_META: Record<string, { title: string; description: string; keywords: string[] }> = {
+    bollywood: {
+        title: 'Bollywood Movies Download 480p 720p 1080p - MKVCinemas',
+        description: 'Download latest Bollywood Hindi movies in 480p, 720p, 1080p quality. Best Bollywood movies free download at MKVCinemas.',
+        keywords: ['Bollywood movies download', 'Hindi movies download', 'Bollywood HD', 'new Bollywood movies 2024', 'mkv bollywood'],
+    },
+    hollywood: {
+        title: 'Hollywood Movies Download Dual Audio Hindi 480p 720p 1080p - MKVCinemas',
+        description: 'Download Hollywood movies in Hindi Dual Audio 480p, 720p, 1080p. Latest Hollywood movies free download at MKVCinemas.',
+        keywords: ['Hollywood movies download', 'Hollywood Hindi dubbed', 'dual audio Hollywood', 'new Hollywood movies 2024'],
+    },
+    'south-indian': {
+        title: 'South Indian Movies Download Hindi Dubbed 480p 720p 1080p - MKVCinemas',
+        description: 'Download South Indian Tamil, Telugu, Malayalam movies Hindi dubbed in HD quality. Free South Indian movies at MKVCinemas.',
+        keywords: ['South Indian movies download', 'Tamil movies Hindi dubbed', 'Telugu movies download', 'Malayalam movies', 'South Indian HD'],
+    },
+    'web-series': {
+        title: 'Web Series Download 480p 720p 1080p All Episodes - MKVCinemas',
+        description: 'Download latest Web Series all episodes in 480p, 720p, 1080p. Netflix, Amazon Prime, Disney+ series free at MKVCinemas.',
+        keywords: ['web series download', 'Netflix series download', 'Amazon Prime series', 'web series all episodes', 'Hindi web series'],
+    },
+    'dual-audio': {
+        title: 'Dual Audio Movies Download Hindi-English 480p 720p 1080p - MKVCinemas',
+        description: 'Download Dual Audio movies in Hindi-English 480p, 720p, 1080p. Largest collection of dual audio movies at MKVCinemas.',
+        keywords: ['dual audio movies download', 'Hindi English dual audio', 'Hollywood dual audio', 'dual audio 1080p download'],
+    },
+    action: {
+        title: 'Action Movies Download HD 480p 720p 1080p - MKVCinemas',
+        description: 'Download latest Action movies in HD 480p, 720p, 1080p quality. Best Bollywood Hollywood action movies at MKVCinemas.',
+        keywords: ['action movies download', 'action HD movies', 'new action movies 2024', 'Bollywood action', 'Hollywood action'],
+    },
+    thriller: {
+        title: 'Thriller Movies Download HD 480p 720p 1080p - MKVCinemas',
+        description: 'Download best Thriller and Suspense movies in HD quality. Latest thriller movies free download at MKVCinemas.',
+        keywords: ['thriller movies download', 'suspense movies HD', 'best thriller 2024', 'crime thriller movies'],
+    },
+    comedy: {
+        title: 'Comedy Movies Download HD 480p 720p 1080p - MKVCinemas',
+        description: 'Download latest Comedy movies in 480p, 720p, 1080p quality. Funny Bollywood Hollywood comedy movies at MKVCinemas.',
+        keywords: ['comedy movies download', 'funny movies HD', 'Bollywood comedy', 'Hollywood comedy movies 2024'],
+    },
+};
+
+export async function generateStaticParams() {
+    return Object.keys(CATEGORY_META).map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+    const { slug } = await params;
+    const meta = CATEGORY_META[slug];
+    const categoryName = slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+
+    const title = meta?.title ?? `${categoryName} Movies Download HD - MKVCinemas`;
+    const description = meta?.description ?? `Download ${categoryName} movies in 480p, 720p, 1080p quality for free at MKVCinemas.`;
+    const keywords = meta?.keywords ?? [`${categoryName} movies download`, `${categoryName} HD`, 'MKVCinemas'];
+
+    return {
+        title,
+        description,
+        keywords,
+        alternates: { canonical: `${BASE_URL}/category/${slug}` },
+        openGraph: {
+            title,
+            description,
+            url: `${BASE_URL}/category/${slug}`,
+            siteName: 'MKVCinemas',
+            type: 'website',
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title,
+            description,
+        },
+    };
+}
 
 export default async function CategoryPage({
     params,
@@ -22,10 +106,12 @@ export default async function CategoryPage({
 
     const where = { categories: { has: categoryName } };
 
+    const cardSelect = { id: true, title: true, year: true, posterUrl: true, quality: true, audio: true } as const;
     const [movies, totalMovies] = await Promise.all([
         prisma.movie.findMany({
+            select: cardSelect,
             where,
-            orderBy: { createdAt: 'desc' },
+            orderBy: [{ year: 'desc' }, { createdAt: 'desc' }],
             take: itemsPerPage,
             skip: (currentPage - 1) * itemsPerPage,
         }),
@@ -34,11 +120,36 @@ export default async function CategoryPage({
 
     const totalPages = Math.ceil(totalMovies / itemsPerPage);
 
+    const breadcrumbJsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+            { '@type': 'ListItem', position: 1, name: 'Home', item: BASE_URL },
+            { '@type': 'ListItem', position: 2, name: categoryName, item: `${BASE_URL}/category/${slug}` },
+        ],
+    };
+
+    const itemListJsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: `${categoryName} Movies`,
+        url: `${BASE_URL}/category/${slug}`,
+        numberOfItems: totalMovies,
+        itemListElement: movies.map((movie, i) => ({
+            '@type': 'ListItem',
+            position: (currentPage - 1) * itemsPerPage + i + 1,
+            url: `${BASE_URL}/watch/${movieSlug(movie.title, movie.id)}`,
+            name: movie.title,
+        })),
+    };
+
     return (
         <div className="flex flex-col lg:flex-row gap-8">
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+            <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
             <div className="flex-1">
                 <section className="mb-8">
-                    <h2 className="text-xl font-bold text-white mb-6 border-b border-neutral-800 pb-2 flex justify-between items-end">
+                    <h1 className="text-xl font-bold text-white mb-6 border-b border-neutral-800 pb-2 flex justify-between items-end">
                         <span>Category: <span className="text-red-500">{categoryName}</span></span>
                         <div className="flex gap-2 text-sm">
                             {currentPage > 1 && (
@@ -48,7 +159,7 @@ export default async function CategoryPage({
                                 <a href={`/category/${slug}?page=${currentPage + 1}`} className="text-red-500 hover:underline">Next</a>
                             )}
                         </div>
-                    </h2>
+                    </h1>
 
                     {movies.length > 0 ? (
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
@@ -61,6 +172,7 @@ export default async function CategoryPage({
                                     posterUrl={movie.posterUrl}
                                     quality={movie.quality}
                                     audio={movie.audio}
+                                    priority={currentPage === 1 && movies.indexOf(movie) < 4}
                                 />
                             ))}
                         </div>

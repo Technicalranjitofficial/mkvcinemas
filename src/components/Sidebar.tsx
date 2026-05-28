@@ -1,9 +1,49 @@
 import Link from 'next/link';
 import { Send } from 'lucide-react';
+import { Suspense } from 'react';
+import prisma from '@/lib/prisma';
+import { movieSlug } from '@/lib/slug';
+
+// ── Live "Recent Updates" — streamed via Suspense ─────────────────────────
+async function RecentUpdatesList() {
+    const recent = await prisma.movie.findMany({
+        select: { id: true, title: true, year: true, quality: true, audio: true },
+        orderBy: { createdAt: 'desc' },
+        take: 6,
+    });
+
+    return (
+        <ul className="space-y-3">
+            {recent.map((m) => (
+                <li key={m.id}>
+                    <Link
+                        href={`/watch/${movieSlug(m.title, m.id)}`}
+                        className="text-xs text-neutral-300 hover:text-red-400 transition-colors line-clamp-2 block leading-relaxed"
+                    >
+                        {m.title} ({m.year}) {m.quality} {m.audio}
+                    </Link>
+                </li>
+            ))}
+        </ul>
+    );
+}
+
+function RecentUpdatesSkeleton() {
+    return (
+        <ul className="space-y-3 animate-pulse">
+            {Array.from({ length: 6 }).map((_, i) => (
+                <li key={i} className="space-y-1">
+                    <div className="h-3 bg-neutral-800 rounded w-full" />
+                    <div className="h-3 bg-neutral-800 rounded w-3/4" />
+                </li>
+            ))}
+        </ul>
+    );
+}
 
 export default function Sidebar() {
     return (
-        <aside className="w-full lg:w-80 flex-shrink-0 space-y-8">
+        <aside className="w-full lg:w-80 shrink-0 space-y-8">
             {/* Telegram Widget */}
             <div className="bg-neutral-900 border border-neutral-800 rounded-md p-4">
                 <h3 className="text-white font-bold mb-3 flex items-center gap-2">
@@ -29,7 +69,10 @@ export default function Sidebar() {
                 <ul className="space-y-2 text-sm text-neutral-400">
                     {['Bollywood', 'Hollywood', 'South Indian', 'Punjabi', 'Web Series', 'Dual Audio', 'Netflix', 'Amazon Prime'].map((cat) => (
                         <li key={cat}>
-                            <Link href={`/category/${cat.toLowerCase().replace(' ', '-')}`} className="hover:text-red-500 transition-colors block py-1 border-b border-neutral-800/50">
+                            <Link
+                                href={`/category/${cat.toLowerCase().replace(/ /g, '-')}`}
+                                className="hover:text-red-500 transition-colors block py-1 border-b border-neutral-800/50"
+                            >
                                 {cat}
                             </Link>
                         </li>
@@ -37,26 +80,14 @@ export default function Sidebar() {
                 </ul>
             </div>
 
-            {/* Recent Posts - text only list */}
+            {/* Recent Updates — live DB data, streamed in via Suspense */}
             <div className="bg-neutral-900 border border-neutral-800 rounded-md p-4">
                 <h3 className="text-white font-bold mb-3 border-l-4 border-yellow-500 pl-3">
                     Recent Updates
                 </h3>
-                <ul className="space-y-3">
-                    {[
-                        "Pushpa 2: The Rule (2024)",
-                        "Kalki 2898 AD (2024)",
-                        "Deadpool & Wolverine (2024)",
-                        "Stree 2 (2024)",
-                        "Mirzapur Season 3"
-                    ].map((item, i) => (
-                        <li key={i}>
-                            <Link href="#" className="text-xs text-neutral-300 hover:text-red-400 transition-colors line-clamp-2">
-                                {item} Download 480p, 720p, 1080p
-                            </Link>
-                        </li>
-                    ))}
-                </ul>
+                <Suspense fallback={<RecentUpdatesSkeleton />}>
+                    <RecentUpdatesList />
+                </Suspense>
             </div>
         </aside>
     );

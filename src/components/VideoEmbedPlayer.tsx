@@ -1,27 +1,58 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Play, Monitor } from 'lucide-react';
+import { Play, Monitor, ChevronDown, Tv } from 'lucide-react';
 import { EMBED_PROVIDERS, ProviderKey, EmbedQuery } from '@/utils/embedProviders';
+
+interface Season {
+  season_number: number;
+  episode_count: number;
+  name: string;
+}
 
 interface VideoEmbedPlayerProps {
   media: EmbedQuery;
+  /** Season metadata from TMDB — pass for TV shows to enable episode picker */
+  seasons?: Season[];
 }
 
-// Providers that support sandbox (do NOT show "sandbox not allowed" errors)
-const SANDBOXED_PROVIDERS: ProviderKey[] = ['vidsrc', 'smashy', 'embedsu', 'twoembed'];
+// Providers that actively detect and block the sandbox attribute (e.g. videasy).
+// These are excluded from sandboxing; popup protection for them comes from the
+// parent-page JavaScript blocker in PopupBlocker.tsx instead.
+const UNSANDBOXABLE_PROVIDERS: ProviderKey[] = ['videasy'];
 
-export default function VideoEmbedPlayer({ media }: VideoEmbedPlayerProps) {
+// Sandbox WITHOUT allow-popups or allow-top-navigation:
+// - prevents the iframe from opening new windows/tabs
+// - prevents the iframe from navigating the parent page
+const IFRAME_SANDBOX =
+  'allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-presentation allow-fullscreen';
+
+// Fallback seasons when TMDB data not available
+const FALLBACK_SEASONS: Season[] = Array.from({ length: 5 }, (_, i) => ({
+  season_number: i + 1,
+  episode_count: 24,
+  name: `Season ${i + 1}`,
+}));
+
+export default function VideoEmbedPlayer({ media, seasons = [] }: VideoEmbedPlayerProps) {
   const [activeProvider, setActiveProvider] = useState<ProviderKey>('videasy');
+  const [activeSeason, setActiveSeason] = useState(media.season ?? 1);
+  const [activeEpisode, setActiveEpisode] = useState(media.episode ?? 1);
+
+  const isTV = media.type === 'tv';
+  const resolvedSeasons = isTV ? (seasons.length > 0 ? seasons : FALLBACK_SEASONS) : [];
+  const currentSeason = resolvedSeasons.find(s => s.season_number === activeSeason) ?? resolvedSeasons[0];
+  const episodeCount = currentSeason?.episode_count ?? 24;
 
   const getEmbedUrl = (): string => {
     const provider = EMBED_PROVIDERS[activeProvider];
-    if (media.type === 'movie') {
-      return provider.getMovieUrl(media.id);
-    }
-    const season = media.season ?? 1;
-    const episode = media.episode ?? 1;
-    return provider.getTvUrl(media.id, season, episode);
+    if (!isTV) return provider.getMovieUrl(media.id);
+    return provider.getTvUrl(media.id, activeSeason, activeEpisode);
+  };
+
+  const handleSeasonChange = (sNum: number) => {
+    setActiveSeason(sNum);
+    setActiveEpisode(1); // reset to Ep 1 when season changes
   };
 
   return (
@@ -30,25 +61,84 @@ export default function VideoEmbedPlayer({ media }: VideoEmbedPlayerProps) {
       <div className="bg-black border-b border-neutral-800 px-4 py-2.5 flex items-center gap-2">
         <div className="flex items-center gap-2 text-red-500 font-bold">
           <Play size={18} fill="currentColor" />
-          <span className="text-sm">Watch Online</span>
+          <span className="text-sm">{isTV ? `S${activeSeason} E${activeEpisode}` : 'Watch Online'}</span>
         </div>
+        {isTV && (
+          <span className="flex items-center gap-1 text-xs text-purple-400 bg-purple-900/30 border border-purple-800/50 px-2 py-0.5 rounded ml-1">
+            <Tv size={11} /> Web Series
+          </span>
+        )}
         <div className="ml-auto flex items-center gap-1.5 text-xs text-neutral-500">
           <Monitor size={13} />
           <span>HD Stream</span>
         </div>
       </div>
 
+      {/* ── Season / Episode Selector (TV only) ─────────────────────────── */}
+      {isTV && (
+        <div className="bg-neutral-950 border-b border-neutral-800 p-3">
+          {/* Season row */}
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xs text-neutral-500 shrink-0 font-medium">Season:</span>
+            <div className="flex gap-1.5 flex-wrap">
+              {resolvedSeasons.map((s) => (
+                <button
+                  key={s.season_number}
+                  onClick={() => handleSeasonChange(s.season_number)}
+                  title={s.name}
+                  className={`px-3 py-1 text-xs rounded font-semibold transition-all duration-150 ${
+                    activeSeason === s.season_number
+                      ? 'bg-red-600 text-white shadow ring-1 ring-red-500'
+                      : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white'
+                  }`}
+                >
+                  S{s.season_number}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Episode grid */}
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs text-neutral-500 shrink-0 font-medium">Episode:</span>
+            <div className="flex gap-1 flex-wrap max-h-24 overflow-y-auto pr-1 custom-scrollbar">
+              {Array.from({ length: episodeCount }, (_, i) => i + 1).map((ep) => (
+                <button
+                  key={ep}
+                  onClick={() => setActiveEpisode(ep)}
+                  className={`min-w-[2.2rem] px-2 py-1 text-xs rounded transition-all duration-150 font-medium ${
+                    activeEpisode === ep
+                      ? 'bg-red-600 text-white ring-1 ring-red-500'
+                      : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white'
+                  }`}
+                >
+                  {ep}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Now playing indicator */}
+          <p className="text-[11px] text-neutral-500 mt-1">
+            Now playing: <span className="text-white font-semibold">Season {activeSeason}, Episode {activeEpisode}</span>
+            {currentSeason?.name && currentSeason.name !== `Season ${activeSeason}` && (
+              <span className="text-neutral-500"> — {currentSeason.name}</span>
+            )}
+          </p>
+        </div>
+      )}
+
       {/* 16:9 Aspect Ratio Wrapper */}
       <div className="relative w-full aspect-video bg-neutral-950">
         <iframe
-          key={`${activeProvider}-${media.id}`}
+          key={`${activeProvider}-${media.id}-${activeSeason}-${activeEpisode}`}
           src={getEmbedUrl()}
           className="absolute inset-0 w-full h-full border-0"
           allowFullScreen
           allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
           referrerPolicy="no-referrer"
-          {...(SANDBOXED_PROVIDERS.includes(activeProvider)
-            ? { sandbox: 'allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-presentation' }
+          {...(!UNSANDBOXABLE_PROVIDERS.includes(activeProvider)
+            ? { sandbox: IFRAME_SANDBOX }
             : {})}
         />
       </div>

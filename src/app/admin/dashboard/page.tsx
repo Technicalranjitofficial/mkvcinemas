@@ -2,12 +2,14 @@ import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import { Edit, Eye } from 'lucide-react';
 import DeleteMovieButton from '@/components/admin/DeleteMovieButton';
+import { movieSlug } from '@/lib/slug';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard() {
     const movies = await prisma.movie.findMany({
-        orderBy: { createdAt: 'desc' },
+        select: { id: true, title: true, quality: true, year: true, createdAt: true },
+        orderBy: [{ year: 'desc' }, { createdAt: 'desc' }],
     });
 
     return (
@@ -47,7 +49,7 @@ export default async function AdminDashboard() {
                                     <td className="p-4 text-neutral-400">{movie.year}</td>
                                     <td className="p-4 text-neutral-400">{new Date(movie.createdAt).toLocaleDateString()}</td>
                                     <td className="p-4 flex justify-end gap-2">
-                                        <Link href={`/movie/${movie.id}`} target="_blank" className="p-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-400 rounded transition-colors" title="View">
+                                        <Link href={`/watch/${movieSlug(movie.title, movie.id)}`} target="_blank" className="p-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-400 rounded transition-colors" title="View">
                                             <Eye size={16} />
                                         </Link>
                                         <Link href={`/admin/edit-movie/${movie.id}`} className="p-2 bg-blue-900/50 hover:bg-blue-900 text-blue-500 rounded transition-colors" title="Edit">

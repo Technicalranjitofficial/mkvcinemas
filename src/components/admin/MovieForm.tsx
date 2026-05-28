@@ -49,7 +49,7 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
     const [cast, setCast] = useState(initialData?.cast || '');
     const [posterUrl, setPosterUrl] = useState(initialData?.posterUrl || '');
     const [tmdbId, setTmdbId] = useState(initialData?.tmdbId || '');
-    const [quality, setQuality] = useState(initialData?.quality || '');
+    const [quality, setQuality] = useState(initialData?.quality || '1080p HEVC');
     const [audio, setAudio] = useState(initialData?.audio || '');
     const [selectedCategories, setSelectedCategories] = useState<string[]>(initialData?.categories || []);
 

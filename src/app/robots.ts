@@ -5,11 +5,24 @@ export default function robots(): MetadataRoute.Robots {
     const baseUrl = 'https://mkvcinemas.world';
 
     return {
-        rules: {
-            userAgent: '*',
-            allow: '/',
-            disallow: ['/admin/', '/login/'],
-        },
+        rules: [
+            {
+                userAgent: 'Googlebot',
+                allow: ['/', '/movie/', '/watch/', '/category/'],
+                disallow: ['/admin/', '/login/', '/api/'],
+            },
+            {
+                userAgent: 'Bingbot',
+                allow: ['/', '/movie/', '/watch/', '/category/'],
+                disallow: ['/admin/', '/login/', '/api/'],
+            },
+            {
+                userAgent: '*',
+                allow: '/',
+                disallow: ['/admin/', '/login/', '/api/'],
+            },
+        ],
         sitemap: `${baseUrl}/sitemap.xml`,
+        host: baseUrl,
     };
 }

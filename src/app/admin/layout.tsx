@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { LayoutDashboard, PlusCircle, Home, Upload } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Home, Upload, Layers } from 'lucide-react';
 
 export default function AdminLayout({
     children,
@@ -26,6 +26,10 @@ export default function AdminLayout({
                     <Link href="/admin/import" className="flex items-center gap-3 text-neutral-400 hover:text-white transition-colors">
                         <Upload size={20} />
                         Import CSV
+                    </Link>
+                    <Link href="/admin/bulk-select" className="flex items-center gap-3 text-neutral-400 hover:text-white transition-colors">
+                        <Layers size={20} />
+                        Bulk Import
                     </Link>
 
                     <div className="pt-8 border-t border-neutral-800 mt-8">

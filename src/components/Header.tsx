@@ -27,16 +27,22 @@ export default function Header() {
                 </nav>
 
                 {/* Search Bar - Desktop */}
-                <div className="hidden md:flex items-center bg-black border border-neutral-700 rounded-md overflow-hidden max-w-xs w-full ml-4">
+                <form
+                    action="/"
+                    method="GET"
+                    className="hidden md:flex items-center bg-black border border-neutral-700 rounded-md overflow-hidden max-w-xs w-full ml-4"
+                >
                     <input
-                        type="text"
+                        type="search"
+                        name="q"
                         placeholder="Search movies..."
+                        autoComplete="off"
                         className="bg-transparent border-none text-sm text-white px-3 py-2 w-full focus:outline-none placeholder-neutral-500"
                     />
-                    <button className="p-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-400">
+                    <button type="submit" className="p-2 bg-neutral-800 hover:bg-neutral-700 text-neutral-400" aria-label="Search">
                         <Search size={18} />
                     </button>
-                </div>
+                </form>
 
                 {/* Mobile Menu Toggle */}
                 <button className="md:hidden text-white">

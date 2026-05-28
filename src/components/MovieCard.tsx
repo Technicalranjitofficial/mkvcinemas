@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import Image from 'next/image';
+import { movieSlug } from '@/lib/slug';
 
 interface MovieCardProps {
     id: string;
@@ -7,6 +9,8 @@ interface MovieCardProps {
     quality: string;
     audio: string;
     year: number;
+    /** Pass true for above-the-fold cards (LCP optimisation) */
+    priority?: boolean;
 }
 
 function getAudioBadge(audio: string): { label: string; color: string } {
@@ -23,16 +27,20 @@ function getAudioBadge(audio: string): { label: string; color: string } {
     return { label: audio.split(' ')[0], color: 'bg-neutral-600 text-white' };
 }
 
-export default function MovieCard({ id, title, posterUrl, quality, audio, year }: MovieCardProps) {
+export default function MovieCard({ id, title, posterUrl, quality, audio, year, priority = false }: MovieCardProps) {
     const audioBadge = getAudioBadge(audio);
 
     return (
-        <Link href={`/movie/${id}`} className="group block bg-neutral-900 border border-neutral-800 rounded-md overflow-hidden hover:border-neutral-700 transition-colors">
-            <div className="relative aspect-[2/3] overflow-hidden">
-                <img
+        <Link href={`/watch/${movieSlug(title, id)}`} className="group block bg-neutral-900 border border-neutral-800 rounded-md overflow-hidden hover:border-neutral-700 transition-colors">
+            <div className="relative aspect-2/3 overflow-hidden">
+                <Image
                     src={posterUrl}
                     alt={title}
-                    className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                    fill
+                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                    priority={priority}
+                    loading={priority ? 'eager' : 'lazy'}
                 />
 
                 {/* Top badges */}

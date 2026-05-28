@@ -3,17 +3,89 @@ import Sidebar from '@/components/Sidebar';
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
+import { Metadata } from 'next';
+import { Suspense } from 'react';
 
 export const revalidate = 300;
 
+export const metadata: Metadata = {
+  title: 'MKVCinemas - Download Movies & Web Series in HD | mkvcinemas.world',
+  description: 'MKVCinemas – Download latest Bollywood, Hollywood, South Indian movies and Web Series in 480p, 720p, 1080p 4K quality. Dual Audio, Hindi Dubbed, Free and Fast downloads.',
+  keywords: [
+    'MKVCinemas', 'mkvcinemas.world', 'mkv cinemas',
+    'download movies free', 'bollywood movies download', 'hollywood movies download',
+    'south indian movies hindi dubbed', 'dual audio movies', 'web series download',
+    '480p movies', '720p movies', '1080p movies', '4K movies download',
+    'hindi dubbed movies', 'latest movies 2024', 'new movies download',
+    'free movies HD', 'movie download site',
+  ],
+  alternates: { canonical: 'https://mkvcinemas.world' },
+  openGraph: {
+    title: 'MKVCinemas - Download Movies & Web Series in HD',
+    description: 'Download latest Bollywood, Hollywood, South Indian movies and Web Series in HD quality. Free and Fast at mkvcinemas.world.',
+    url: 'https://mkvcinemas.world',
+    siteName: 'MKVCinemas',
+    type: 'website',
+  },
+};
+
 const CATEGORIES = [
-  { label: 'Bollywood', slug: 'bollywood', color: 'border-orange-500' },
-  { label: 'Hollywood', slug: 'hollywood', color: 'border-blue-500' },
-  { label: 'South Indian', slug: 'south-indian', color: 'border-green-500' },
-  { label: 'Web Series', slug: 'web-series', color: 'border-purple-500' },
-  { label: 'Dual Audio', slug: 'dual-audio', color: 'border-yellow-500' },
-  { label: 'Action', slug: 'action', color: 'border-red-500' },
+  { label: 'Bollywood',    slug: 'bollywood',    color: 'border-orange-500' },
+  { label: 'Hollywood',    slug: 'hollywood',    color: 'border-blue-500'   },
+  { label: 'South Indian', slug: 'south-indian', color: 'border-green-500'  },
+  { label: 'Web Series',   slug: 'web-series',   color: 'border-purple-500' },
+  { label: 'Dual Audio',   slug: 'dual-audio',   color: 'border-yellow-500' },
+  { label: 'Action',       slug: 'action',       color: 'border-red-500'    },
 ];
+
+// Only 6 fields needed for a card — keeps each query lean
+const cardSelect = { id: true, title: true, year: true, posterUrl: true, quality: true, audio: true } as const;
+
+// ── Streamed category section (renders independently via Suspense) ─────────
+async function CategorySection({ cat }: { cat: (typeof CATEGORIES)[number] }) {
+  const movies = await prisma.movie.findMany({
+    select: cardSelect,
+    where: { categories: { has: cat.label } },
+    orderBy: [{ year: 'desc' }, { createdAt: 'desc' }],
+    take: 6,
+  });
+  if (!movies.length) return null;
+  return (
+    <section>
+      <div className={`flex justify-between items-center mb-5 border-b-2 ${cat.color} pb-2`}>
+        <h2 className="text-xl font-bold text-white">{cat.label}</h2>
+        <Link href={`/category/${cat.slug}`} className="flex items-center gap-1 text-sm text-red-500 hover:text-red-400 transition-colors">
+          View All <ChevronRight size={16} />
+        </Link>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {movies.map((m) => (
+          <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// Skeleton shown while a CategorySection is loading
+function CategorySkeleton({ color }: { color: string }) {
+  return (
+    <section className="animate-pulse">
+      <div className={`flex justify-between items-center mb-5 border-b-2 ${color} pb-2`}>
+        <div className="h-6 bg-neutral-800 rounded w-28" />
+        <div className="h-4 bg-neutral-800 rounded w-14" />
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i}>
+            <div className="aspect-2/3 bg-neutral-800 rounded-md mb-2" />
+            <div className="h-3 bg-neutral-800 rounded w-3/4" />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 export default async function Home({
   searchParams,
@@ -34,7 +106,7 @@ export default async function Home({
       ],
     };
     const [movies, totalMovies] = await Promise.all([
-      prisma.movie.findMany({ where, orderBy: { createdAt: 'desc' }, take: itemsPerPage, skip: (currentPage - 1) * itemsPerPage }),
+      prisma.movie.findMany({ select: cardSelect, where, orderBy: [{ year: 'desc' }, { createdAt: 'desc' }], take: itemsPerPage, skip: (currentPage - 1) * itemsPerPage }),
       prisma.movie.count({ where }),
     ]);
     const totalPages = Math.ceil(totalMovies / itemsPerPage);
@@ -51,7 +123,7 @@ export default async function Home({
           </h2>
           {movies.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {movies.map((m) => <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} />)}
+              {movies.map((m, i) => <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} priority={i < 4} />)}
             </div>
           ) : (
             <div className="text-center py-20 text-neutral-500"><p>No movies found.</p></div>
@@ -62,26 +134,19 @@ export default async function Home({
     );
   }
 
-  // --- Homepage mode: latest + category sections ---
-  const [latestMovies, ...categoryMovieLists] = await Promise.all([
-    prisma.movie.findMany({ orderBy: { createdAt: 'desc' }, take: itemsPerPage, skip: (currentPage - 1) * itemsPerPage }),
-    ...CATEGORIES.map((cat) =>
-      prisma.movie.findMany({
-        where: { categories: { has: cat.label } },
-        orderBy: { createdAt: 'desc' },
-        take: 6,
-      })
-    ),
+  // --- Homepage mode: latest movies first, category sections stream in via Suspense ---
+  const [latestMovies, totalMovies] = await Promise.all([
+    prisma.movie.findMany({ select: cardSelect, orderBy: [{ year: 'desc' }, { createdAt: 'desc' }], take: itemsPerPage, skip: (currentPage - 1) * itemsPerPage }),
+    prisma.movie.count({}),
   ]);
 
-  const totalMovies = await prisma.movie.count({});
   const totalPages = Math.ceil(totalMovies / itemsPerPage);
 
   return (
     <div className="flex flex-col lg:flex-row gap-8">
       <div className="flex-1 space-y-12">
 
-        {/* Latest Movies */}
+        {/* Latest Movies — rendered synchronously (above the fold) */}
         <section>
           <div className="flex justify-between items-center mb-5 border-b border-neutral-800 pb-2">
             <h2 className="text-xl font-bold text-white">Latest Movies</h2>
@@ -92,31 +157,19 @@ export default async function Home({
           </div>
           {latestMovies.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {latestMovies.map((m) => <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} />)}
+              {latestMovies.map((m, i) => <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} priority={i < 4} />)}
             </div>
           ) : (
             <div className="text-center py-20 text-neutral-500"><p>No movies yet.</p></div>
           )}
         </section>
 
-        {/* Category Sections */}
-        {CATEGORIES.map((cat, idx) => {
-          const movies = categoryMovieLists[idx];
-          if (!movies || movies.length === 0) return null;
-          return (
-            <section key={cat.slug}>
-              <div className={`flex justify-between items-center mb-5 border-b-2 ${cat.color} pb-2`}>
-                <h2 className="text-xl font-bold text-white">{cat.label}</h2>
-                <Link href={`/category/${cat.slug}`} className="flex items-center gap-1 text-sm text-red-500 hover:text-red-400 transition-colors">
-                  View All <ChevronRight size={16} />
-                </Link>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                {movies.map((m) => <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} />)}
-              </div>
-            </section>
-          );
-        })}
+        {/* Category Sections — each streams in independently as its DB query resolves */}
+        {CATEGORIES.map((cat) => (
+          <Suspense key={cat.slug} fallback={<CategorySkeleton color={cat.color} />}>
+            <CategorySection cat={cat} />
+          </Suspense>
+        ))}
 
       </div>
       <Sidebar />
