@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { LayoutDashboard, PlusCircle, Film, Home } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Home, Upload } from 'lucide-react';
 
 export default function AdminLayout({
     children,
@@ -22,6 +22,10 @@ export default function AdminLayout({
                     <Link href="/admin/add-movie" className="flex items-center gap-3 text-neutral-400 hover:text-white transition-colors">
                         <PlusCircle size={20} />
                         Add Movie
+                    </Link>
+                    <Link href="/admin/import" className="flex items-center gap-3 text-neutral-400 hover:text-white transition-colors">
+                        <Upload size={20} />
+                        Import CSV
                     </Link>
 
                     <div className="pt-8 border-t border-neutral-800 mt-8">

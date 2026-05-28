@@ -19,6 +19,7 @@ model Movie {
   director    String?
   cast        String?
   posterUrl   String
+  tmdbId      String?  // TMDb ID for embed player (e.g. "550")
   screenshots String[]
   categories  String[] // e.g. ["Bollywood", "Action"]
   

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import prisma from '@/lib/prisma';
 import StreamPlayer from '@/components/StreamPlayer';
-import { Download, Star } from 'lucide-react';
+import { Download, Star, Play } from 'lucide-react';
 import { notFound } from 'next/navigation';
 
 import { Metadata } from 'next';
@@ -124,6 +124,16 @@ export default async function MovieDetails({ params }: Props) {
                         <p className="text-neutral-400 text-sm leading-relaxed">
                             {movie.plot}
                         </p>
+                    </div>
+
+                    {/* Watch Online CTA */}
+                    <div className="pt-4 flex flex-wrap gap-3">
+                        <Link
+                            href={`/watch/${movie.id}`}
+                            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold px-5 py-2.5 rounded-lg transition-colors text-sm shadow-md"
+                        >
+                            <Play size={16} fill="currentColor" /> Watch Online
+                        </Link>
                     </div>
                 </div>
             </div>

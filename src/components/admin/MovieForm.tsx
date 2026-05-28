@@ -1,7 +1,17 @@
 'use client';
 
-import { Plus, Trash, Save } from 'lucide-react';
-import { useState } from 'react';
+import { Plus, Trash, Save, Search, Loader2 } from 'lucide-react';
+import { useState, useTransition } from 'react';
+import { searchTmdb, getTmdbDetails } from '@/app/actions/tmdb';
+import type { TmdbSearchResult } from '@/app/actions/tmdb';
+
+const ALL_CATEGORIES = ['Bollywood', 'Hollywood', 'South Indian', 'Web Series', 'Dual Audio', 'Action', 'Thriller', 'Comedy'];
+const TMDB_GENRE_MAP: Record<string, string> = {
+    'Action': 'Action',
+    'Adventure': 'Action',
+    'Thriller': 'Thriller',
+    'Comedy': 'Comedy',
+};
 
 interface MovieFormProps {
     action: (formData: FormData) => Promise<void>;
@@ -17,6 +27,7 @@ interface MovieFormProps {
         director: string | null;
         cast: string | null;
         posterUrl: string;
+        tmdbId?: string | null;
         categories: string[];
         screenshots: string[];
         downloadLinks: { label: string; url: string; color: string }[];
@@ -26,49 +37,145 @@ interface MovieFormProps {
 }
 
 export default function MovieForm({ action, initialData, isEdit = false }: MovieFormProps) {
+    // Controlled basic fields (so TMDB can auto-fill them)
+    const [title, setTitle] = useState(initialData?.title || '');
+    const [year, setYear] = useState(initialData?.year || new Date().getFullYear());
+    const [rating, setRating] = useState(initialData?.rating || 0);
+    const [plot, setPlot] = useState(initialData?.plot || '');
+    const [director, setDirector] = useState(initialData?.director || '');
+    const [cast, setCast] = useState(initialData?.cast || '');
+    const [posterUrl, setPosterUrl] = useState(initialData?.posterUrl || '');
+    const [tmdbId, setTmdbId] = useState(initialData?.tmdbId || '');
+    const [selectedCategories, setSelectedCategories] = useState<string[]>(initialData?.categories || []);
+
+    // Dynamic arrays
     const [screenshots, setScreenshots] = useState<string[]>(initialData?.screenshots.length ? initialData.screenshots : ['']);
     const [downloadLinks, setDownloadLinks] = useState(initialData?.downloadLinks.length ? initialData.downloadLinks : [{ label: '', url: '', color: 'blue' }]);
     const [streamLinks, setStreamLinks] = useState(initialData?.streamLinks.length ? initialData.streamLinks : [{ server: '', url: '' }]);
 
+    // TMDB search state
+    const [tmdbQuery, setTmdbQuery] = useState('');
+    const [tmdbResults, setTmdbResults] = useState<TmdbSearchResult[]>([]);
+    const [isPending, startTransition] = useTransition();
+
+    const handleTmdbSearch = () => {
+        if (!tmdbQuery.trim()) return;
+        startTransition(async () => {
+            const results = await searchTmdb(tmdbQuery);
+            setTmdbResults(results);
+        });
+    };
+
+    const handleTmdbSelect = (result: TmdbSearchResult) => {
+        startTransition(async () => {
+            const details = await getTmdbDetails(result.id);
+            if (!details) return;
+            setTitle(details.title);
+            if (details.release_date) setYear(new Date(details.release_date).getFullYear());
+            setRating(Math.round(details.vote_average * 10) / 10);
+            setPlot(details.overview || '');
+            const dir = details.credits?.crew?.find(c => c.job === 'Director')?.name || '';
+            setDirector(dir);
+            const castList = details.credits?.cast?.slice(0, 6).map(c => c.name).join(', ') || '';
+            setCast(castList);
+            if (details.poster_path) setPosterUrl(`https://image.tmdb.org/t/p/w500${details.poster_path}`);
+            setTmdbId(String(result.id));
+            const backdrops = (details.images?.backdrops ?? [])
+                .slice(0, 4)
+                .map(b => `https://image.tmdb.org/t/p/w780${b.file_path}`);
+            if (backdrops.length > 0) setScreenshots(backdrops);
+            const mappedCats = (details.genres ?? [])
+                .map(g => TMDB_GENRE_MAP[g.name])
+                .filter(Boolean) as string[];
+            setSelectedCategories([...new Set(mappedCats)]);
+            setTmdbResults([]);
+            setTmdbQuery('');
+        });
+    };
+
+    const toggleCategory = (cat: string) =>
+        setSelectedCategories((prev: string[]) => prev.includes(cat) ? prev.filter((c: string) => c !== cat) : [...prev, cat]);
+
     const addScreenshot = () => setScreenshots([...screenshots, '']);
-    const removeScreenshot = (index: number) => setScreenshots(screenshots.filter((_, i) => i !== index));
+    const removeScreenshot = (index: number) => setScreenshots(screenshots.filter((_: string, i: number) => i !== index));
     const updateScreenshot = (index: number, value: string) => {
-        const newScreenshots = [...screenshots];
-        newScreenshots[index] = value;
-        setScreenshots(newScreenshots);
+        const next = [...screenshots]; next[index] = value; setScreenshots(next);
     };
 
     const addLink = () => setDownloadLinks([...downloadLinks, { label: '', url: '', color: 'blue' }]);
-    const removeLink = (index: number) => setDownloadLinks(downloadLinks.filter((_, i) => i !== index));
+    const removeLink = (index: number) => setDownloadLinks(downloadLinks.filter((_: unknown, i: number) => i !== index));
     const updateLink = (index: number, field: string, value: string) => {
-        const newLinks = [...downloadLinks];
-        newLinks[index] = { ...newLinks[index], [field]: value };
-        setDownloadLinks(newLinks);
+        const next = [...downloadLinks]; next[index] = { ...next[index], [field]: value }; setDownloadLinks(next);
     };
 
     const addStreamLink = () => setStreamLinks([...streamLinks, { server: '', url: '' }]);
-    const removeStreamLink = (index: number) => setStreamLinks(streamLinks.filter((_, i) => i !== index));
+    const removeStreamLink = (index: number) => setStreamLinks(streamLinks.filter((_: unknown, i: number) => i !== index));
     const updateStreamLink = (index: number, field: string, value: string) => {
-        const newLinks = [...streamLinks];
-        newLinks[index] = { ...newLinks[index], [field]: value };
-        setStreamLinks(newLinks);
+        const next = [...streamLinks]; next[index] = { ...next[index], [field]: value }; setStreamLinks(next);
     };
 
     return (
         <form action={action} className="space-y-8">
+            {/* TMDB Auto-fill */}
+            <div className="bg-blue-950/30 border border-blue-900/50 rounded-lg p-4 space-y-3">
+                <p className="text-sm font-bold text-blue-400 uppercase tracking-wider">Auto-fill from TMDB</p>
+                <div className="flex gap-2">
+                    <input
+                        type="text"
+                        value={tmdbQuery}
+                        onChange={e => setTmdbQuery(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleTmdbSearch())}
+                        placeholder="Search movie title on TMDB..."
+                        className="flex-1 bg-black border border-neutral-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                    />
+                    <button
+                        type="button"
+                        onClick={handleTmdbSearch}
+                        disabled={isPending}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-4 py-2 rounded flex items-center gap-2 text-sm"
+                    >
+                        {isPending ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
+                        Search
+                    </button>
+                </div>
+                {tmdbResults.length > 0 && (
+                    <div className="bg-black border border-neutral-800 rounded divide-y divide-neutral-800 max-h-64 overflow-y-auto">
+                        {tmdbResults.map(result => (
+                            <button
+                                key={result.id}
+                                type="button"
+                                onClick={() => handleTmdbSelect(result)}
+                                className="w-full flex items-center gap-3 p-2 hover:bg-neutral-900 text-left transition-colors"
+                            >
+                                {result.poster_path ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img src={`https://image.tmdb.org/t/p/w92${result.poster_path}`} alt={result.title} className="w-10 h-14 object-cover rounded shrink-0" />
+                                ) : (
+                                    <div className="w-10 h-14 bg-neutral-800 rounded shrink-0" />
+                                )}
+                                <div>
+                                    <p className="font-medium text-white text-sm">{result.title}</p>
+                                    <p className="text-neutral-500 text-xs">{result.release_date?.split('-')[0]} · ⭐ {result.vote_average?.toFixed(1)}</p>
+                                </div>
+                            </button>
+                        ))}
+                    </div>
+                )}
+            </div>
+
             {/* Basic Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-neutral-400">Movie Title</label>
-                    <input required name="title" type="text" defaultValue={initialData?.title} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" placeholder="e.g. Pushpa 2: The Rule" />
+                    <input required name="title" type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" placeholder="e.g. Pushpa 2: The Rule" />
                 </div>
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-neutral-400">Year</label>
-                    <input required name="year" type="number" defaultValue={initialData?.year || new Date().getFullYear()} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" />
+                    <input required name="year" type="number" value={year} onChange={e => setYear(Number(e.target.value))} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" />
                 </div>
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-neutral-400">Rating (0-10)</label>
-                    <input name="rating" type="number" step="0.1" defaultValue={initialData?.rating} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" placeholder="e.g. 8.5" />
+                    <input name="rating" type="number" step="0.1" value={rating} onChange={e => setRating(Number(e.target.value))} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" placeholder="e.g. 8.5" />
                 </div>
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-neutral-400">Quality Label</label>
@@ -88,36 +195,61 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
             <div className="space-y-6">
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-neutral-400">Plot Summary</label>
-                    <textarea required name="plot" rows={4} defaultValue={initialData?.plot} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" placeholder="Enter movie plot..." />
+                    <textarea required name="plot" rows={4} value={plot} onChange={e => setPlot(e.target.value)} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" placeholder="Enter movie plot..." />
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-neutral-400">Director</label>
-                        <input name="director" type="text" defaultValue={initialData?.director ?? ''} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" />
+                        <input name="director" type="text" value={director} onChange={e => setDirector(e.target.value)} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" />
                     </div>
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-neutral-400">Cast</label>
-                        <input name="cast" type="text" defaultValue={initialData?.cast ?? ''} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" />
+                        <input name="cast" type="text" value={cast} onChange={e => setCast(e.target.value)} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" />
                     </div>
                 </div>
             </div>
 
-            {/* Images */}
-            <div className="space-y-2">
-                <label className="text-sm font-medium text-neutral-400">Poster URL</label>
-                <input required name="posterUrl" type="url" defaultValue={initialData?.posterUrl} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" placeholder="https://..." />
+            {/* Poster & TMDb ID */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-400">Poster URL</label>
+                    <input required name="posterUrl" type="url" value={posterUrl} onChange={e => setPosterUrl(e.target.value)} className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2" placeholder="https://..." />
+                </div>
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-400">
+                        TMDb ID
+                        <span className="ml-2 text-xs text-neutral-600 font-normal">(auto-filled — powers Watch Online player)</span>
+                    </label>
+                    <input
+                        name="tmdbId"
+                        type="text"
+                        value={tmdbId}
+                        onChange={e => setTmdbId(e.target.value)}
+                        className="w-full bg-neutral-900 border border-neutral-800 rounded px-4 py-2 font-mono"
+                        placeholder="e.g. 550"
+                    />
+                </div>
+                {posterUrl && (
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-neutral-400">Preview</label>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={posterUrl} alt="Poster preview" className="h-32 rounded object-cover border border-neutral-800" />
+                    </div>
+                )}
             </div>
 
+            {/* Categories */}
             <div className="space-y-2">
                 <label className="text-sm font-medium text-neutral-400">Categories</label>
                 <div className="flex flex-wrap gap-4 p-4 bg-neutral-900 border border-neutral-800 rounded">
-                    {['Bollywood', 'Hollywood', 'South Indian', 'Web Series', 'Dual Audio', 'Action', 'Thriller', 'Comedy'].map(cat => (
+                    {ALL_CATEGORIES.map(cat => (
                         <label key={cat} className="flex items-center gap-2 cursor-pointer">
                             <input
                                 type="checkbox"
                                 name="categories"
                                 value={cat}
-                                defaultChecked={initialData?.categories?.includes(cat)}
+                                checked={selectedCategories.includes(cat)}
+                                onChange={() => toggleCategory(cat)}
                                 className="rounded bg-neutral-800 border-neutral-700"
                             />
                             <span>{cat}</span>
@@ -126,7 +258,7 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
                 </div>
             </div>
 
-            {/* Dynamic Screenshots */}
+            {/* Screenshots */}
             <div className="space-y-4 border p-4 border-neutral-800 rounded bg-neutral-900/50">
                 <div className="flex justify-between items-center">
                     <label className="font-bold">Screenshots URLs</label>
@@ -137,23 +269,15 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
                 <div className="space-y-2">
                     {screenshots.map((url, idx) => (
                         <div key={idx} className="flex gap-2">
-                            <input
-                                type="url"
-                                value={url}
-                                onChange={(e) => updateScreenshot(idx, e.target.value)}
-                                className="flex-1 bg-black border border-neutral-800 rounded px-3 py-1 text-sm"
-                                placeholder="https://..."
-                            />
-                            <button type="button" onClick={() => removeScreenshot(idx)} className="text-red-500 hover:text-red-400">
-                                <Trash size={18} />
-                            </button>
+                            <input type="url" value={url} onChange={(e) => updateScreenshot(idx, e.target.value)} className="flex-1 bg-black border border-neutral-800 rounded px-3 py-1 text-sm" placeholder="https://..." />
+                            <button type="button" onClick={() => removeScreenshot(idx)} className="text-red-500 hover:text-red-400"><Trash size={18} /></button>
                         </div>
                     ))}
                     <input type="hidden" name="screenshots" value={screenshots.join(',')} />
                 </div>
             </div>
 
-            {/* Dynamic Stream Links */}
+            {/* Stream Links */}
             <div className="space-y-4 border p-4 border-neutral-800 rounded bg-neutral-900/50">
                 <div className="flex justify-between items-center">
                     <label className="font-bold">Streaming Links</label>
@@ -164,30 +288,16 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
                 <div className="space-y-3">
                     {streamLinks.map((link, idx) => (
                         <div key={idx} className="flex flex-col md:flex-row gap-2 items-start md:items-center bg-black p-2 rounded border border-neutral-800">
-                            <input
-                                type="text"
-                                placeholder="Server Name (e.g. Server 1)"
-                                value={link.server}
-                                onChange={(e) => updateStreamLink(idx, 'server', e.target.value)}
-                                className="bg-neutral-900 border-none rounded px-2 py-1 flex-1 min-w-[120px]"
-                            />
-                            <input
-                                type="url"
-                                placeholder="Iframe URL"
-                                value={link.url}
-                                onChange={(e) => updateStreamLink(idx, 'url', e.target.value)}
-                                className="bg-neutral-900 border-none rounded px-2 py-1 flex-[2]"
-                            />
-                            <button type="button" onClick={() => removeStreamLink(idx)} className="text-red-500 p-1">
-                                <Trash size={16} />
-                            </button>
+                            <input type="text" placeholder="Server Name (e.g. Server 1)" value={link.server} onChange={(e) => updateStreamLink(idx, 'server', e.target.value)} className="bg-neutral-900 border-none rounded px-2 py-1 flex-1 min-w-[120px]" />
+                            <input type="url" placeholder="Iframe URL" value={link.url} onChange={(e) => updateStreamLink(idx, 'url', e.target.value)} className="bg-neutral-900 border-none rounded px-2 py-1 flex-2" />
+                            <button type="button" onClick={() => removeStreamLink(idx)} className="text-red-500 p-1"><Trash size={16} /></button>
                         </div>
                     ))}
                     <input type="hidden" name="streamLinks" value={JSON.stringify(streamLinks)} />
                 </div>
             </div>
 
-            {/* Dynamic Download Links */}
+            {/* Download Links */}
             <div className="space-y-4 border p-4 border-neutral-800 rounded bg-neutral-900/50">
                 <div className="flex justify-between items-center">
                     <label className="font-bold">Download Links</label>
@@ -198,33 +308,15 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
                 <div className="space-y-3">
                     {downloadLinks.map((link, idx) => (
                         <div key={idx} className="flex flex-col md:flex-row gap-2 items-start md:items-center bg-black p-2 rounded border border-neutral-800">
-                            <input
-                                type="text"
-                                placeholder="Label (e.g. 720p)"
-                                value={link.label}
-                                onChange={(e) => updateLink(idx, 'label', e.target.value)}
-                                className="bg-neutral-900 border-none rounded px-2 py-1 flex-1 min-w-[120px]"
-                            />
-                            <input
-                                type="url"
-                                placeholder="Download URL"
-                                value={link.url}
-                                onChange={(e) => updateLink(idx, 'url', e.target.value)}
-                                className="bg-neutral-900 border-none rounded px-2 py-1 flex-[2]"
-                            />
-                            <select
-                                value={link.color}
-                                onChange={(e) => updateLink(idx, 'color', e.target.value)}
-                                className="bg-neutral-900 border-none rounded px-2 py-1 text-sm text-neutral-400"
-                            >
+                            <input type="text" placeholder="Label (e.g. 720p)" value={link.label} onChange={(e) => updateLink(idx, 'label', e.target.value)} className="bg-neutral-900 border-none rounded px-2 py-1 flex-1 min-w-[120px]" />
+                            <input type="url" placeholder="Download URL" value={link.url} onChange={(e) => updateLink(idx, 'url', e.target.value)} className="bg-neutral-900 border-none rounded px-2 py-1 flex-2" />
+                            <select value={link.color} onChange={(e) => updateLink(idx, 'color', e.target.value)} className="bg-neutral-900 border-none rounded px-2 py-1 text-sm text-neutral-400">
                                 <option value="blue">Blue</option>
                                 <option value="green">Green</option>
                                 <option value="red">Red</option>
                                 <option value="yellow">Yellow</option>
                             </select>
-                            <button type="button" onClick={() => removeLink(idx)} className="text-red-500 p-1">
-                                <Trash size={16} />
-                            </button>
+                            <button type="button" onClick={() => removeLink(idx)} className="text-red-500 p-1"><Trash size={16} /></button>
                         </div>
                     ))}
                     <input type="hidden" name="downloadLinks" value={JSON.stringify(downloadLinks)} />

@@ -15,6 +15,7 @@ export async function createMovie(formData: FormData) {
     const director = formData.get('director') as string;
     const cast = formData.get('cast') as string;
     const posterUrl = formData.get('posterUrl') as string;
+    const tmdbId = (formData.get('tmdbId') as string)?.trim() || null;
 
     // Handling arrays (simplified for now, ideally parsed from JSON or multiple inputs)
     const screenshots = (formData.get('screenshots') as string).split(',').map(s => s.trim()).filter(s => s);
@@ -53,6 +54,7 @@ export async function createMovie(formData: FormData) {
             director,
             cast,
             posterUrl,
+            tmdbId,
             screenshots,
             categories,
             downloadLinks,
@@ -84,6 +86,7 @@ export async function updateMovie(id: string, formData: FormData) {
     const director = formData.get('director') as string;
     const cast = formData.get('cast') as string;
     const posterUrl = formData.get('posterUrl') as string;
+    const tmdbId = (formData.get('tmdbId') as string)?.trim() || null;
 
     const screenshots = (formData.get('screenshots') as string).split(',').map(s => s.trim()).filter(s => s);
     const categories = (formData.getAll('categories') as string[]);
@@ -122,6 +125,7 @@ export async function updateMovie(id: string, formData: FormData) {
             director,
             cast,
             posterUrl,
+            tmdbId,
             screenshots,
             categories,
             downloadLinks,
@@ -133,4 +137,42 @@ export async function updateMovie(id: string, formData: FormData) {
     revalidatePath(`/movie/${id}`);
     revalidatePath('/admin/dashboard');
     redirect('/admin/dashboard');
+}
+
+interface BulkMovieInput {
+    title: string;
+    year: number;
+    rating: number;
+    quality: string;
+    audio: string;
+    size: string;
+    plot: string;
+    director: string;
+    cast: string;
+    posterUrl: string;
+    screenshots: string[];
+    categories: string[];
+}
+
+export async function bulkImportMovies(
+    movies: BulkMovieInput[]
+): Promise<{ success: number; errors: string[] }> {
+    const result = { success: 0, errors: [] as string[] };
+
+    for (const movie of movies) {
+        try {
+            await prisma.movie.create({
+                data: { ...movie, downloadLinks: [], streamLinks: [] },
+            });
+            result.success++;
+        } catch (e) {
+            result.errors.push(
+                `"${movie.title}": ${e instanceof Error ? e.message : 'Unknown error'}`
+            );
+        }
+    }
+
+    revalidatePath('/');
+    revalidatePath('/admin/dashboard');
+    return result;
 }
