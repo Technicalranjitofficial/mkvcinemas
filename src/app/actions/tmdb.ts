@@ -30,21 +30,6 @@ export interface TmdbMovieDetails {
     };
 }
 
-// Maps TMDB original_language to a suggested audio label
-export function suggestAudio(originalLanguage: string): string {
-    const map: Record<string, string> = {
-        hi: 'Hindi',
-        en: 'English',
-        ta: 'Tamil',
-        te: 'Telugu',
-        ml: 'Malayalam',
-        kn: 'Kannada',
-        mr: 'Marathi',
-        bn: 'Bengali',
-        pa: 'Punjabi',
-    };
-    return map[originalLanguage] ?? 'Hindi';
-}
 
 export async function searchTmdb(query: string): Promise<TmdbSearchResult[]> {
     const apiKey = process.env.TMDB_API_KEY;

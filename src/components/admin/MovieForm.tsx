@@ -2,7 +2,8 @@
 
 import { Plus, Trash, Save, Search, Loader2, TrendingUp, Flame } from 'lucide-react';
 import { useState, useTransition, useEffect } from 'react';
-import { searchTmdb, getTmdbDetails, getTrendingMovies, getMoviesByLanguage, suggestAudio } from '@/app/actions/tmdb';
+import { searchTmdb, getTmdbDetails, getTrendingMovies, getMoviesByLanguage } from '@/app/actions/tmdb';
+import { suggestAudio } from '@/utils/tmdbHelpers';
 import type { TmdbSearchResult } from '@/app/actions/tmdb';
 
 const ALL_CATEGORIES = ['Bollywood', 'Hollywood', 'South Indian', 'Web Series', 'Dual Audio', 'Action', 'Thriller', 'Comedy'];
