@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Play, Monitor, ChevronDown, Tv } from 'lucide-react';
 import { EMBED_PROVIDERS, ProviderKey, EmbedQuery } from '@/utils/embedProviders';
 
@@ -38,6 +38,10 @@ export default function VideoEmbedPlayer({ media, seasons = [] }: VideoEmbedPlay
   const [activeProvider, setActiveProvider] = useState<ProviderKey>('videasy');
   const [activeSeason, setActiveSeason] = useState(media.season ?? 1);
   const [activeEpisode, setActiveEpisode] = useState(media.episode ?? 1);
+  // Prevent SSR — iframe must only render on the client so the embed URL is
+  // never baked into server HTML (avoids hydration mismatch and own-page flash)
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const isTV = media.type === 'tv';
   const resolvedSeasons = isTV ? (seasons.length > 0 ? seasons : FALLBACK_SEASONS) : [];
@@ -130,17 +134,23 @@ export default function VideoEmbedPlayer({ media, seasons = [] }: VideoEmbedPlay
 
       {/* 16:9 Aspect Ratio Wrapper */}
       <div className="relative w-full aspect-video bg-neutral-950">
-        <iframe
-          key={`${activeProvider}-${media.id}-${activeSeason}-${activeEpisode}`}
-          src={getEmbedUrl()}
-          className="absolute inset-0 w-full h-full border-0"
-          allowFullScreen
-          allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-          referrerPolicy="no-referrer"
-          {...(!UNSANDBOXABLE_PROVIDERS.includes(activeProvider)
-            ? { sandbox: IFRAME_SANDBOX }
-            : {})}
-        />
+        {mounted ? (
+          <iframe
+            key={`${activeProvider}-${media.id}-${activeSeason}-${activeEpisode}`}
+            src={getEmbedUrl()}
+            className="absolute inset-0 w-full h-full border-0"
+            allowFullScreen
+            allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+            referrerPolicy="no-referrer"
+            {...(!UNSANDBOXABLE_PROVIDERS.includes(activeProvider)
+              ? { sandbox: IFRAME_SANDBOX }
+              : {})}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="w-10 h-10 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
       </div>
 
       {/* Server Selector */}

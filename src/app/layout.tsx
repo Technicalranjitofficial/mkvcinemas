@@ -27,8 +27,14 @@ export const metadata: Metadata = {
     default: "MKVCinemas - Download Movies & Web Series | mkvcinemas.world",
     template: "%s | MKVCinemas",
   },
-  description: "MKVCinemas - The best site to download 480p, 720p, 1080p Movies and Web Series in Dual Audio. Fast, Free, and Secure downloads at mkvcinemas.world.",
-  keywords: ["MKVCinemas", "mkvcinemas.world", "Download Movies", "Web Series", "Dual Audio Movies", "480p Movies", "720p Movies", "1080p Movies", "Bollywood Movies", "Hollywood Movies"],
+  description: "MKVCinemas – Download latest Bollywood, Hollywood & South Indian movies and Web Series in 480p, 720p, 1080p, 4K. Dual Audio, Hindi Dubbed. Free and Fast at mkvcinemas.world.",
+  keywords: [
+    "MKVCinemas", "mkvcinemas.world", "mkv cinemas",
+    "Download Movies", "Web Series download", "Dual Audio Movies",
+    "480p Movies", "720p Movies", "1080p Movies", "4K Movies",
+    "Bollywood Movies download", "Hollywood Movies download",
+    "South Indian Hindi dubbed", "new movies 2025", "new movies 2026",
+  ],
   icons: {
     icon: [
       { url: '/favicon-6-32x32.png', sizes: '32x32', type: 'image/png' },
@@ -39,8 +45,8 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: 'MKVCinemas - Download Movies & Web Series',
-    description: 'Download Movies & Web Series. Free and Fast on MKVCinemas.',
+    title: 'MKVCinemas - Download Movies & Web Series in HD',
+    description: 'Download latest Bollywood, Hollywood, South Indian movies and Web Series in 480p, 720p, 1080p, 4K. Dual Audio, Hindi Dubbed. Free and Fast at MKVCinemas.',
     url: 'https://mkvcinemas.world',
     siteName: 'MKVCinemas',
     locale: 'en_US',
@@ -49,11 +55,14 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     site: '@mkvcinemas',
-    title: 'MKVCinemas - Download Movies & Web Series',
-    description: 'Download Movies & Web Series in HD. Free and Fast on MKVCinemas.',
+    title: 'MKVCinemas - Download Movies & Web Series in HD',
+    description: 'Download latest Bollywood, Hollywood & South Indian movies and Web Series in HD. Dual Audio, Free and Fast on MKVCinemas.',
   },
   alternates: {
     canonical: 'https://mkvcinemas.world',
+  },
+  other: {
+    'theme-color': '#0a0a0a',
   },
   robots: {
     index: true,
@@ -108,11 +117,12 @@ export default function RootLayout({
                   '@id': 'https://mkvcinemas.world/#organization',
                   name: 'MKVCinemas',
                   url: 'https://mkvcinemas.world',
+                  description: 'Download Bollywood, Hollywood and South Indian movies and Web Series in HD quality for free.',
                   logo: {
                     '@type': 'ImageObject',
-                    url: 'https://mkvcinemas.world/favicon-6-192x192.png',
-                    width: 192,
-                    height: 192,
+                    '@id': 'https://mkvcinemas.world/#logo',
+                    url: 'https://mkvcinemas.world/logo.png',
+                    contentUrl: 'https://mkvcinemas.world/logo.png',
                   },
                   sameAs: ['https://mkvcinemas.world'],
                 },

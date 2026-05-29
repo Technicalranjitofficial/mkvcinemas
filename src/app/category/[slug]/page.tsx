@@ -14,12 +14,12 @@ const CATEGORY_META: Record<string, { title: string; description: string; keywor
     bollywood: {
         title: 'Bollywood Movies Download 480p 720p 1080p - MKVCinemas',
         description: 'Download latest Bollywood Hindi movies in 480p, 720p, 1080p quality. Best Bollywood movies free download at MKVCinemas.',
-        keywords: ['Bollywood movies download', 'Hindi movies download', 'Bollywood HD', 'new Bollywood movies 2024', 'mkv bollywood'],
+        keywords: ['Bollywood movies download', 'Hindi movies download', 'Bollywood HD', 'new Bollywood movies 2025', 'new Bollywood movies 2026', 'mkv bollywood'],
     },
     hollywood: {
         title: 'Hollywood Movies Download Dual Audio Hindi 480p 720p 1080p - MKVCinemas',
         description: 'Download Hollywood movies in Hindi Dual Audio 480p, 720p, 1080p. Latest Hollywood movies free download at MKVCinemas.',
-        keywords: ['Hollywood movies download', 'Hollywood Hindi dubbed', 'dual audio Hollywood', 'new Hollywood movies 2024'],
+        keywords: ['Hollywood movies download', 'Hollywood Hindi dubbed', 'dual audio Hollywood', 'new Hollywood movies 2025', 'new Hollywood movies 2026'],
     },
     'south-indian': {
         title: 'South Indian Movies Download Hindi Dubbed 480p 720p 1080p - MKVCinemas',
@@ -29,7 +29,7 @@ const CATEGORY_META: Record<string, { title: string; description: string; keywor
     'web-series': {
         title: 'Web Series Download 480p 720p 1080p All Episodes - MKVCinemas',
         description: 'Download latest Web Series all episodes in 480p, 720p, 1080p. Netflix, Amazon Prime, Disney+ series free at MKVCinemas.',
-        keywords: ['web series download', 'Netflix series download', 'Amazon Prime series', 'web series all episodes', 'Hindi web series'],
+        keywords: ['web series download', 'Netflix series download', 'Amazon Prime series', 'web series all episodes 2025', 'Hindi web series 2026'],
     },
     'dual-audio': {
         title: 'Dual Audio Movies Download Hindi-English 480p 720p 1080p - MKVCinemas',
@@ -39,17 +39,17 @@ const CATEGORY_META: Record<string, { title: string; description: string; keywor
     action: {
         title: 'Action Movies Download HD 480p 720p 1080p - MKVCinemas',
         description: 'Download latest Action movies in HD 480p, 720p, 1080p quality. Best Bollywood Hollywood action movies at MKVCinemas.',
-        keywords: ['action movies download', 'action HD movies', 'new action movies 2024', 'Bollywood action', 'Hollywood action'],
+        keywords: ['action movies download', 'action HD movies', 'new action movies 2025', 'new action movies 2026', 'Bollywood action', 'Hollywood action'],
     },
     thriller: {
         title: 'Thriller Movies Download HD 480p 720p 1080p - MKVCinemas',
         description: 'Download best Thriller and Suspense movies in HD quality. Latest thriller movies free download at MKVCinemas.',
-        keywords: ['thriller movies download', 'suspense movies HD', 'best thriller 2024', 'crime thriller movies'],
+        keywords: ['thriller movies download', 'suspense movies HD', 'best thriller 2025', 'best thriller 2026', 'crime thriller movies'],
     },
     comedy: {
         title: 'Comedy Movies Download HD 480p 720p 1080p - MKVCinemas',
         description: 'Download latest Comedy movies in 480p, 720p, 1080p quality. Funny Bollywood Hollywood comedy movies at MKVCinemas.',
-        keywords: ['comedy movies download', 'funny movies HD', 'Bollywood comedy', 'Hollywood comedy movies 2024'],
+        keywords: ['comedy movies download', 'funny movies HD', 'Bollywood comedy', 'Hollywood comedy movies 2025'],
     },
 };
 
@@ -59,16 +59,31 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({
     params,
+    searchParams,
 }: {
     params: Promise<{ slug: string }>;
+    searchParams: Promise<{ page?: string }>;
 }): Promise<Metadata> {
     const { slug } = await params;
+    const { page } = await searchParams;
+    const currentPage = parseInt(page || '1', 10);
     const meta = CATEGORY_META[slug];
     const categoryName = slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
     const title = meta?.title ?? `${categoryName} Movies Download HD - MKVCinemas`;
     const description = meta?.description ?? `Download ${categoryName} movies in 480p, 720p, 1080p quality for free at MKVCinemas.`;
     const keywords = meta?.keywords ?? [`${categoryName} movies download`, `${categoryName} HD`, 'MKVCinemas'];
+
+    // Paginated category pages: noindex + canonical to page 1
+    if (currentPage > 1) {
+        return {
+            title: `${title} – Page ${currentPage}`,
+            description,
+            keywords,
+            robots: { index: false, follow: true },
+            alternates: { canonical: `${BASE_URL}/category/${slug}` },
+        };
+    }
 
     return {
         title,

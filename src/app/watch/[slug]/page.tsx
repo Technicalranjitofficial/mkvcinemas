@@ -32,7 +32,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const canonical = `https://mkvcinemas.world/watch/${movieSlug(movie.title, movie.id)}`;
   const title = `Watch ${movie.title} (${movie.year}) Online Free in HD - MKVCinemas`;
-  const description = `Watch ${movie.title} (${movie.year}) online free in ${movie.quality} ${movie.audio}. ${movie.plot.substring(0, 120)}`;
+  const plotSnippet = (movie.plot ?? '').substring(0, 130);
+  const description = `Watch ${movie.title} (${movie.year}) online free in ${movie.quality} ${movie.audio}. ${plotSnippet}`.substring(0, 160);
+  const posterImage = movie.posterUrl?.trim() || null;
 
   return {
     title,
@@ -53,7 +55,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      images: [{ url: movie.posterUrl, width: 500, height: 750, alt: movie.title }],
+      ...(posterImage && { images: [{ url: posterImage, width: 500, height: 750, alt: movie.title }] }),
       url: canonical,
       type: 'video.movie',
       siteName: 'MKVCinemas',
@@ -62,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: 'summary_large_image',
       title,
       description,
-      images: [movie.posterUrl],
+      ...(posterImage && { images: [posterImage] }),
     },
   };
 }
@@ -81,26 +83,44 @@ export default async function WatchPage({ params }: Props) {
 
   const canonicalUrl = `https://mkvcinemas.world/watch/${movieSlug(movie.title, movie.id)}`;
 
+  // Use the actual embed player URL for VideoObject.embedUrl (not the watch page)
+  const embedUrl = movie.tmdbId?.trim()
+    ? `https://player.videasy.net/${isTV ? 'tv' : 'movie'}/${movie.tmdbId}`
+    : null;
+
   const jsonLd = [
+    // Movie schema — enables Google movie rich results (director, cast, genre, rating snippets)
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Movie',
+      '@id': `${canonicalUrl}#movie`,
+      name: movie.title,
+      url: canonicalUrl,
+      description: movie.plot || '',
+      ...(movie.posterUrl?.trim() && { image: movie.posterUrl }),
+      datePublished: String(movie.year),
+      ...(movie.director && {
+        director: { '@type': 'Person', name: movie.director },
+      }),
+      ...(movie.cast && {
+        actor: movie.cast
+          .split(',')
+          .slice(0, 6)
+          .map((n) => ({ '@type': 'Person', name: n.trim() })),
+      }),
+      ...(movie.categories?.length && { genre: movie.categories }),
+    },
+    // VideoObject schema — enables Google video preview cards in search results
     {
       '@context': 'https://schema.org',
       '@type': 'VideoObject',
       name: `${movie.title} (${movie.year})`,
-      description: movie.plot,
-      thumbnailUrl: movie.posterUrl,
+      description: (movie.plot || `Watch ${movie.title} free online`).substring(0, 160),
+      ...(movie.posterUrl?.trim() && { thumbnailUrl: movie.posterUrl }),
       uploadDate: new Date(movie.createdAt).toISOString(),
-      embedUrl: canonicalUrl,
-      contentUrl: canonicalUrl,
-      ...(movie.rating && {
-        aggregateRating: {
-          '@type': 'AggregateRating',
-          ratingValue: movie.rating,
-          bestRating: '10',
-          worstRating: '0',
-          ratingCount: '1000',
-        },
-      }),
+      ...(embedUrl && { embedUrl }),
     },
+    // BreadcrumbList — shows site path in Google search snippets
     {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',

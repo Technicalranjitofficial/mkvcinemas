@@ -9,7 +9,7 @@ import { preload } from 'react-dom';
 
 export const revalidate = 300;
 
-export const metadata: Metadata = {
+const HOME_METADATA: Metadata = {
   title: 'MKVCinemas - Download Movies & Web Series in HD | mkvcinemas.world',
   description: 'MKVCinemas – Download latest Bollywood, Hollywood, South Indian movies and Web Series in 480p, 720p, 1080p 4K quality. Dual Audio, Hindi Dubbed, Free and Fast downloads.',
   keywords: [
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     'download movies free', 'bollywood movies download', 'hollywood movies download',
     'south indian movies hindi dubbed', 'dual audio movies', 'web series download',
     '480p movies', '720p movies', '1080p movies', '4K movies download',
-    'hindi dubbed movies', 'latest movies 2024', 'new movies download',
+    'hindi dubbed movies', 'latest movies 2025', 'latest movies 2026', 'new movies download',
     'free movies HD', 'movie download site',
   ],
   alternates: { canonical: 'https://mkvcinemas.world' },
@@ -29,6 +29,37 @@ export const metadata: Metadata = {
     type: 'website',
   },
 };
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; page?: string }>;
+}): Promise<Metadata> {
+  const { q, page } = await searchParams;
+  const currentPage = parseInt(page || '1', 10);
+
+  // Search results — keep out of index (thin/ever-changing content)
+  if (q) {
+    return {
+      title: `Search: "${q}" – MKVCinemas`,
+      description: `Search results for "${q}" on MKVCinemas.`,
+      robots: { index: false, follow: true },
+      alternates: { canonical: 'https://mkvcinemas.world' },
+    };
+  }
+
+  // Paginated homepage — canonical points to page 1, page itself is noindex
+  if (currentPage > 1) {
+    return {
+      ...HOME_METADATA,
+      title: `MKVCinemas – Movies Page ${currentPage} | mkvcinemas.world`,
+      robots: { index: false, follow: true },
+      alternates: { canonical: 'https://mkvcinemas.world' },
+    };
+  }
+
+  return HOME_METADATA;
+}
 
 const CATEGORIES = [
   { label: 'Bollywood',    slug: 'bollywood',    color: 'border-orange-500' },

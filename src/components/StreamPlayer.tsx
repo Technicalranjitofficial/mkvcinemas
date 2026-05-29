@@ -9,9 +9,11 @@ interface StreamLink {
 }
 
 export default function StreamPlayer({ streamLinks }: { streamLinks: StreamLink[] }) {
-    const [activeStream, setActiveStream] = useState(streamLinks[0]);
+    // Drop links that have no URL — an empty src="" would load the current page
+    const validLinks = streamLinks.filter(l => l.url?.trim());
+    const [activeStream, setActiveStream] = useState(validLinks[0]);
 
-    if (!streamLinks || streamLinks.length === 0) {
+    if (!validLinks || validLinks.length === 0) {
         return null;
     }
 
@@ -23,7 +25,7 @@ export default function StreamPlayer({ streamLinks }: { streamLinks: StreamLink[
                     <Play size={20} fill="currentColor" /> Watch Online
                 </div>
 
-                {streamLinks.map((link, idx) => (
+                {validLinks.map((link, idx) => (
                     <button
                         key={idx}
                         onClick={() => setActiveStream(link)}
