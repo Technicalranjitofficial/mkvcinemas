@@ -9,30 +9,30 @@ export interface EmbedQuery {
 
 export const EMBED_PROVIDERS = {
   videasy: {
-    name: 'Videasy',
+    name: 'Server 1',
     getMovieUrl: (id: string) =>
       `https://player.videasy.net/movie/${id}?color=FF0000&overlay=true`,
     getTvUrl: (id: string, s: number, e: number) =>
       `https://player.videasy.net/tv/${id}/${s}/${e}?color=FF0000&episodeSelector=false&nextEpisode=false&autoplayNextEpisode=false&overlay=true`,
   },
   vidsrc: {
-    name: 'VidSrc',
+    name: 'Server 2',
     getMovieUrl: (id: string) => `https://vidsrc.to/embed/movie/${id}`,
     getTvUrl: (id: string, s: number, e: number) => `https://vidsrc.to/embed/tv/${id}/${s}/${e}`,
   },
   smashy: {
-    name: 'SmashyStream',
+    name: 'Server 3',
     getMovieUrl: (id: string) => `https://embed.smashystream.com/playere.php?tmdb=${id}`,
     getTvUrl: (id: string, s: number, e: number) =>
       `https://embed.smashystream.com/playere.php?tmdb=${id}&season=${s}&episode=${e}`,
   },
   embedsu: {
-    name: 'Embed.su',
+    name: 'Server 4',
     getMovieUrl: (id: string) => `https://embed.su/embed/movie/${id}`,
     getTvUrl: (id: string, s: number, e: number) => `https://embed.su/embed/tv/${id}/${s}/${e}`,
   },
   twoembed: {
-    name: '2Embed',
+    name: 'Server 5',
     getMovieUrl: (id: string) => `https://www.2embed.cc/embed/${id}`,
     getTvUrl: (id: string, s: number, e: number) =>
       `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`,
