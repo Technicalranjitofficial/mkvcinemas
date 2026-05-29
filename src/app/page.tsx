@@ -40,6 +40,107 @@ const CATEGORIES = [
 
 // Only 6 fields needed for a card — keeps each query lean
 const cardSelect = { id: true, title: true, year: true, posterUrl: true, quality: true, audio: true } as const;
+const ITEMS_PER_PAGE = 12;
+
+// ── Streamed latest-movies section ────────────────────────────────────────
+async function LatestMoviesSection({ page }: { page: number }) {
+  const [movies, totalMovies] = await Promise.all([
+    prisma.movie.findMany({ select: cardSelect, orderBy: [{ year: 'desc' }, { createdAt: 'desc' }], take: ITEMS_PER_PAGE, skip: (page - 1) * ITEMS_PER_PAGE }),
+    prisma.movie.count({}),
+  ]);
+  const totalPages = Math.ceil(totalMovies / ITEMS_PER_PAGE);
+
+  return (
+    <section>
+      <div className="flex justify-between items-center mb-5 border-b border-neutral-800 pb-2">
+        <h2 className="text-xl font-bold text-white">Latest Movies</h2>
+        <div className="flex gap-3 text-sm">
+          {page > 1 && <a href={`/?page=${page - 1}`} className="text-red-500 hover:underline">Previous</a>}
+          {page < totalPages && <a href={`/?page=${page + 1}`} className="text-red-500 hover:underline">Next</a>}
+        </div>
+      </div>
+      {movies.length > 0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {movies.map((m, i) => <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} priority={i < 4} />)}
+        </div>
+      ) : (
+        <div className="text-center py-20 text-neutral-500"><p>No movies yet.</p></div>
+      )}
+    </section>
+  );
+}
+
+function LatestMoviesSkeleton() {
+  return (
+    <section className="animate-pulse">
+      <div className="flex justify-between items-center mb-5 border-b border-neutral-800 pb-2">
+        <div className="h-6 bg-neutral-800 rounded w-36" />
+        <div className="h-4 bg-neutral-800 rounded w-14" />
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        {Array.from({ length: ITEMS_PER_PAGE }).map((_, i) => (
+          <div key={i}>
+            <div className="aspect-2/3 bg-neutral-800 rounded-md mb-2" />
+            <div className="h-3 bg-neutral-800 rounded w-3/4" />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ── Streamed search-results section ──────────────────────────────────────
+async function SearchResultsSection({ query, page }: { query: string; page: number }) {
+  const where = {
+    OR: [
+      { title: { contains: query, mode: 'insensitive' as const } },
+      { cast:  { contains: query, mode: 'insensitive' as const } },
+    ],
+  };
+  const [movies, totalMovies] = await Promise.all([
+    prisma.movie.findMany({ select: cardSelect, where, orderBy: [{ year: 'desc' }, { createdAt: 'desc' }], take: ITEMS_PER_PAGE, skip: (page - 1) * ITEMS_PER_PAGE }),
+    prisma.movie.count({ where }),
+  ]);
+  const totalPages = Math.ceil(totalMovies / ITEMS_PER_PAGE);
+
+  return (
+    <>
+      <h2 className="text-xl font-bold text-white mb-6 border-b border-neutral-800 pb-2 flex justify-between items-end">
+        <span>Search Results for &quot;{query}&quot;</span>
+        <div className="flex gap-2 text-sm">
+          {page > 1 && <a href={`/?page=${page - 1}&q=${query}`} className="text-red-500 hover:underline">Previous</a>}
+          {page < totalPages && <a href={`/?page=${page + 1}&q=${query}`} className="text-red-500 hover:underline">Next</a>}
+        </div>
+      </h2>
+      {movies.length > 0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {movies.map((m, i) => <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} priority={i < 4} />)}
+        </div>
+      ) : (
+        <div className="text-center py-20 text-neutral-500"><p>No movies found.</p></div>
+      )}
+    </>
+  );
+}
+
+function SearchResultsSkeleton({ query }: { query: string }) {
+  return (
+    <section className="animate-pulse">
+      <div className="flex justify-between items-center mb-6 border-b border-neutral-800 pb-2">
+        <div className="h-6 bg-neutral-800 rounded w-64" />
+      </div>
+      <p className="text-neutral-500 text-sm mb-4">Searching for &quot;{query}&quot;…</p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        {Array.from({ length: 8 }).map((_, i) => (
+          <div key={i}>
+            <div className="aspect-2/3 bg-neutral-800 rounded-md mb-2" />
+            <div className="h-3 bg-neutral-800 rounded w-3/4" />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
 
 // ── Streamed category section (renders independently via Suspense) ─────────
 async function CategorySection({ cat }: { cat: (typeof CATEGORIES)[number] }) {
@@ -87,6 +188,7 @@ function CategorySkeleton({ color }: { color: string }) {
   );
 }
 
+// ── Route handler — zero DB work here, shell streams immediately ──────────
 export default async function Home({
   searchParams,
 }: {
@@ -94,77 +196,33 @@ export default async function Home({
 }) {
   const { q, page } = await searchParams;
   const currentPage = parseInt(page || '1');
-  const itemsPerPage = 12;
   const query = q || '';
 
   // --- Search mode ---
   if (query) {
-    const where = {
-      OR: [
-        { title: { contains: query, mode: 'insensitive' as const } },
-        { cast: { contains: query, mode: 'insensitive' as const } },
-      ],
-    };
-    const [movies, totalMovies] = await Promise.all([
-      prisma.movie.findMany({ select: cardSelect, where, orderBy: [{ year: 'desc' }, { createdAt: 'desc' }], take: itemsPerPage, skip: (currentPage - 1) * itemsPerPage }),
-      prisma.movie.count({ where }),
-    ]);
-    const totalPages = Math.ceil(totalMovies / itemsPerPage);
-
     return (
       <div className="flex flex-col lg:flex-row gap-8">
         <div className="flex-1">
-          <h2 className="text-xl font-bold text-white mb-6 border-b border-neutral-800 pb-2 flex justify-between items-end">
-            <span>Search Results for &quot;{query}&quot;</span>
-            <div className="flex gap-2 text-sm">
-              {currentPage > 1 && <a href={`/?page=${currentPage - 1}&q=${query}`} className="text-red-500 hover:underline">Previous</a>}
-              {currentPage < totalPages && <a href={`/?page=${currentPage + 1}&q=${query}`} className="text-red-500 hover:underline">Next</a>}
-            </div>
-          </h2>
-          {movies.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {movies.map((m, i) => <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} priority={i < 4} />)}
-            </div>
-          ) : (
-            <div className="text-center py-20 text-neutral-500"><p>No movies found.</p></div>
-          )}
+          <Suspense fallback={<SearchResultsSkeleton query={query} />}>
+            <SearchResultsSection query={query} page={currentPage} />
+          </Suspense>
         </div>
         <Sidebar />
       </div>
     );
   }
 
-  // --- Homepage mode: latest movies first, category sections stream in via Suspense ---
-  const [latestMovies, totalMovies] = await Promise.all([
-    prisma.movie.findMany({ select: cardSelect, orderBy: [{ year: 'desc' }, { createdAt: 'desc' }], take: itemsPerPage, skip: (currentPage - 1) * itemsPerPage }),
-    prisma.movie.count({}),
-  ]);
-
-  const totalPages = Math.ceil(totalMovies / itemsPerPage);
-
+  // --- Homepage mode: all sections stream in independently via Suspense ---
   return (
     <div className="flex flex-col lg:flex-row gap-8">
       <div className="flex-1 space-y-12">
 
-        {/* Latest Movies — rendered synchronously (above the fold) */}
-        <section>
-          <div className="flex justify-between items-center mb-5 border-b border-neutral-800 pb-2">
-            <h2 className="text-xl font-bold text-white">Latest Movies</h2>
-            <div className="flex gap-3 text-sm">
-              {currentPage > 1 && <a href={`/?page=${currentPage - 1}`} className="text-red-500 hover:underline">Previous</a>}
-              {currentPage < totalPages && <a href={`/?page=${currentPage + 1}`} className="text-red-500 hover:underline">Next</a>}
-            </div>
-          </div>
-          {latestMovies.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {latestMovies.map((m, i) => <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} priority={i < 4} />)}
-            </div>
-          ) : (
-            <div className="text-center py-20 text-neutral-500"><p>No movies yet.</p></div>
-          )}
-        </section>
+        {/* Latest Movies — streams in as soon as its query resolves */}
+        <Suspense fallback={<LatestMoviesSkeleton />}>
+          <LatestMoviesSection page={currentPage} />
+        </Suspense>
 
-        {/* Category Sections — each streams in independently as its DB query resolves */}
+        {/* Category Sections — each streams in independently */}
         {CATEGORIES.map((cat) => (
           <Suspense key={cat.slug} fallback={<CategorySkeleton color={cat.color} />}>
             <CategorySection cat={cat} />

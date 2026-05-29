@@ -33,15 +33,21 @@ export default function MovieCard({ id, title, posterUrl, quality, audio, year, 
     return (
         <Link href={`/watch/${movieSlug(title, id)}`} className="group block bg-neutral-900 border border-neutral-800 rounded-md overflow-hidden hover:border-neutral-700 transition-colors">
             <div className="relative aspect-2/3 overflow-hidden">
-                <Image
-                    src={posterUrl}
-                    alt={title}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    priority={priority}
-                    loading={priority ? 'eager' : 'lazy'}
-                />
+                {posterUrl ? (
+                    <Image
+                        src={posterUrl}
+                        alt={title}
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, (max-width: 1024px) 25vw, 16vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        priority={priority}
+                        loading={priority ? 'eager' : 'lazy'}
+                    />
+                ) : (
+                    <div className="w-full h-full bg-neutral-800 flex items-center justify-center">
+                        <span className="text-neutral-500 text-xs">No Image</span>
+                    </div>
+                )}
 
                 {/* Top badges */}
                 <div className="absolute top-2 left-2 flex flex-col gap-1">
