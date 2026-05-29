@@ -153,3 +153,77 @@ export async function getTmdbTvSeasons(tmdbId: string): Promise<TmdbTvSeason[]> 
             }));
     } catch { return []; }
 }
+
+// ── Paginated discover functions ───────────────────────────────────────────
+
+export interface DiscoverFilters {
+    page?: number;     // 1-based TMDB page
+    year?: number;     // primary_release_year / first_air_date_year
+    genreId?: number;  // TMDB genre ID
+}
+
+export interface TmdbPagedResponse<T> {
+    results: T[];
+    totalPages: number;
+    totalResults: number;
+}
+
+export async function getTrendingMoviesPaged(filters: DiscoverFilters = {}): Promise<TmdbPagedResponse<TmdbSearchResult>> {
+    const apiKey = process.env.TMDB_API_KEY;
+    if (!apiKey || apiKey === 'your_tmdb_api_key_here') return { results: [], totalPages: 0, totalResults: 0 };
+    try {
+        const page = filters.page ?? 1;
+        const res = await fetch(
+            `https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&language=en-US&page=${page}`,
+            { cache: 'no-store' }
+        );
+        if (!res.ok) return { results: [], totalPages: 0, totalResults: 0 };
+        const data = await res.json();
+        return { results: data.results ?? [], totalPages: Math.min(data.total_pages ?? 1, 500), totalResults: data.total_results ?? 0 };
+    } catch { return { results: [], totalPages: 0, totalResults: 0 }; }
+}
+
+export async function discoverMoviesPaged(lang: string, filters: DiscoverFilters = {}): Promise<TmdbPagedResponse<TmdbSearchResult>> {
+    const apiKey = process.env.TMDB_API_KEY;
+    if (!apiKey || apiKey === 'your_tmdb_api_key_here') return { results: [], totalPages: 0, totalResults: 0 };
+    try {
+        const page = filters.page ?? 1;
+        let url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_original_language=${lang}&sort_by=popularity.desc&language=en-US&page=${page}`;
+        if (filters.year) url += `&primary_release_year=${filters.year}`;
+        if (filters.genreId) url += `&with_genres=${filters.genreId}`;
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) return { results: [], totalPages: 0, totalResults: 0 };
+        const data = await res.json();
+        return { results: data.results ?? [], totalPages: Math.min(data.total_pages ?? 1, 500), totalResults: data.total_results ?? 0 };
+    } catch { return { results: [], totalPages: 0, totalResults: 0 }; }
+}
+
+export async function getTrendingTvPaged(filters: DiscoverFilters = {}): Promise<TmdbPagedResponse<TmdbTvResult>> {
+    const apiKey = process.env.TMDB_API_KEY;
+    if (!apiKey || apiKey === 'your_tmdb_api_key_here') return { results: [], totalPages: 0, totalResults: 0 };
+    try {
+        const page = filters.page ?? 1;
+        const res = await fetch(
+            `https://api.themoviedb.org/3/trending/tv/week?api_key=${apiKey}&language=en-US&page=${page}`,
+            { cache: 'no-store' }
+        );
+        if (!res.ok) return { results: [], totalPages: 0, totalResults: 0 };
+        const data = await res.json();
+        return { results: data.results ?? [], totalPages: Math.min(data.total_pages ?? 1, 500), totalResults: data.total_results ?? 0 };
+    } catch { return { results: [], totalPages: 0, totalResults: 0 }; }
+}
+
+export async function discoverTvPaged(lang: string, filters: DiscoverFilters = {}): Promise<TmdbPagedResponse<TmdbTvResult>> {
+    const apiKey = process.env.TMDB_API_KEY;
+    if (!apiKey || apiKey === 'your_tmdb_api_key_here') return { results: [], totalPages: 0, totalResults: 0 };
+    try {
+        const page = filters.page ?? 1;
+        let url = `https://api.themoviedb.org/3/discover/tv?api_key=${apiKey}&with_original_language=${lang}&sort_by=popularity.desc&language=en-US&page=${page}`;
+        if (filters.year) url += `&first_air_date_year=${filters.year}`;
+        if (filters.genreId) url += `&with_genres=${filters.genreId}`;
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) return { results: [], totalPages: 0, totalResults: 0 };
+        const data = await res.json();
+        return { results: data.results ?? [], totalPages: Math.min(data.total_pages ?? 1, 500), totalResults: data.total_results ?? 0 };
+    } catch { return { results: [], totalPages: 0, totalResults: 0 }; }
+}

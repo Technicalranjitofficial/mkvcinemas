@@ -4,6 +4,12 @@ import prisma from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
+/** Returns all tmdbIds already in the database so the client can mark/filter imported movies. */
+export async function getExistingTmdbIds(): Promise<string[]> {
+    const rows = await prisma.movie.findMany({ select: { tmdbId: true } });
+    return rows.map(r => r.tmdbId).filter((id): id is string => id !== null && id !== '');
+}
+
 export async function createMovie(formData: FormData) {
     const title = formData.get('title') as string;
     const year = parseInt(formData.get('year') as string);
