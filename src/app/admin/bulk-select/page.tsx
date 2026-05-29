@@ -102,6 +102,8 @@ export default function BulkSelectPage() {
   const [totalUiPages,    setTotalUiPages]    = useState(1);
   const [notImportedOnly, setNotImportedOnly] = useState(false);
   const [existingIds,     setExistingIds]     = useState<Set<string>>(new Set());
+  // Bumping this forces a re-fetch even when all other deps stay the same (e.g. after import on page 1)
+  const [refreshKey,      setRefreshKey]      = useState(0);
 
   useEffect(() => {
     getExistingTmdbIds().then(ids => setExistingIds(new Set(ids)));
@@ -159,7 +161,7 @@ export default function BulkSelectPage() {
   useEffect(() => {
     loadMovies(activeTab, uiPage, year, genreId, perPage);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, uiPage, year, genreId, perPage]);
+  }, [activeTab, uiPage, year, genreId, perPage, refreshKey]);
 
   const resetPage = () => { setUiPage(1); setSelected(new Set()); };
 
@@ -204,7 +206,11 @@ export default function BulkSelectPage() {
       const res = await bulkImportFromTmdb(toImport, quality, audio, size);
       setResult(res);
       setSelected(new Set());
-      getExistingTmdbIds().then(ids => setExistingIds(new Set(ids)));
+      // Refresh the imported-ID set, reset to page 1, and force a fresh grid load
+      const freshIds = await getExistingTmdbIds();
+      setExistingIds(new Set(freshIds));
+      setUiPage(1);
+      setRefreshKey(k => k + 1);
     });
   };
 
