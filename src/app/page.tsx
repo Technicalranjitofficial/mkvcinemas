@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { Metadata } from 'next';
 import { Suspense } from 'react';
+import { preload } from 'react-dom';
 
 export const revalidate = 300;
 
@@ -213,6 +214,16 @@ export default async function Home({
   }
 
   // --- Homepage mode: all sections stream in independently via Suspense ---
+  // Preload the LCP image (first poster) early so the browser starts fetching
+  // it before the LatestMoviesSection Suspense boundary resolves.
+  const lcpMovie = await prisma.movie.findFirst({
+    select: { posterUrl: true },
+    orderBy: [{ year: 'desc' }, { createdAt: 'desc' }],
+  });
+  if (lcpMovie?.posterUrl) {
+    preload(lcpMovie.posterUrl, { as: 'image', fetchPriority: 'high' });
+  }
+
   return (
     <div className="flex flex-col lg:flex-row gap-8">
       <div className="flex-1 space-y-12">
