@@ -60,14 +60,29 @@ const LANG_CATEGORY = {
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-async function tmdbGet(path, params = {}) {
+async function tmdbGet(path, params = {}, attempt = 1) {
   const url = new URL(`${TMDB_BASE}${path}`);
   url.searchParams.set('api_key', TMDB_KEY);
   for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
 
-  const res = await fetch(url.toString());
-  if (!res.ok) throw new Error(`TMDB ${path} → ${res.status} ${res.statusText}`);
-  return res.json();
+  try {
+    const res = await fetch(url.toString(), {
+      headers: {
+        'User-Agent': 'MKVCinemas-Bot/1.0',
+        'Accept': 'application/json',
+      },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    return res.json();
+  } catch (err) {
+    if (attempt < 3) {
+      const delay = attempt * 1500;
+      console.log(`    ⚠  Retry ${attempt}/3 for ${path} (${err.message}) — waiting ${delay}ms…`);
+      await sleep(delay);
+      return tmdbGet(path, params, attempt + 1);
+    }
+    throw new Error(`TMDB ${path}: ${err.message}`);
+  }
 }
 
 function sleep(ms) {
