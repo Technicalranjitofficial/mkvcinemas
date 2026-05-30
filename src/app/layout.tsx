@@ -22,7 +22,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://mkvcinemas.world'),
+  metadataBase: new URL('https://www.mkvcinemas.world'),
   title: {
     default: "MKVCinemas - Download Movies & Web Series | mkvcinemas.world",
     template: "%s | MKVCinemas",
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'MKVCinemas - Download Movies & Web Series in HD',
     description: 'Download latest Bollywood, Hollywood, South Indian movies and Web Series in 480p, 720p, 1080p, 4K. Dual Audio, Hindi Dubbed. Free and Fast at MKVCinemas.',
-    url: 'https://mkvcinemas.world',
+    url: 'https://www.mkvcinemas.world',
     siteName: 'MKVCinemas',
     locale: 'en_US',
     type: 'website',
@@ -59,7 +59,7 @@ export const metadata: Metadata = {
     description: 'Download latest Bollywood, Hollywood & South Indian movies and Web Series in HD. Dual Audio, Free and Fast on MKVCinemas.',
   },
   alternates: {
-    canonical: 'https://mkvcinemas.world',
+    canonical: 'https://www.mkvcinemas.world',
   },
   other: {
     'theme-color': '#0a0a0a',
@@ -99,32 +99,32 @@ export default function RootLayout({
               '@graph': [
                 {
                   '@type': 'WebSite',
-                  '@id': 'https://mkvcinemas.world/#website',
-                  url: 'https://mkvcinemas.world',
+                  '@id': 'https://www.mkvcinemas.world/#website',
+                  url: 'https://www.mkvcinemas.world',
                   name: 'MKVCinemas',
                   description: 'Download Movies & Web Series in HD quality. Free and Fast.',
                   potentialAction: {
                     '@type': 'SearchAction',
                     target: {
                       '@type': 'EntryPoint',
-                      urlTemplate: 'https://mkvcinemas.world/?q={search_term_string}',
+                      urlTemplate: 'https://www.mkvcinemas.world/?q={search_term_string}',
                     },
                     'query-input': 'required name=search_term_string',
                   },
                 },
                 {
                   '@type': 'Organization',
-                  '@id': 'https://mkvcinemas.world/#organization',
+                  '@id': 'https://www.mkvcinemas.world/#organization',
                   name: 'MKVCinemas',
-                  url: 'https://mkvcinemas.world',
+                  url: 'https://www.mkvcinemas.world',
                   description: 'Download Bollywood, Hollywood and South Indian movies and Web Series in HD quality for free.',
                   logo: {
                     '@type': 'ImageObject',
-                    '@id': 'https://mkvcinemas.world/#logo',
-                    url: 'https://mkvcinemas.world/logo.png',
-                    contentUrl: 'https://mkvcinemas.world/logo.png',
+                    '@id': 'https://www.mkvcinemas.world/#logo',
+                    url: 'https://www.mkvcinemas.world/logo.png',
+                    contentUrl: 'https://www.mkvcinemas.world/logo.png',
                   },
-                  sameAs: ['https://mkvcinemas.world'],
+                  sameAs: ['https://www.mkvcinemas.world'],
                 },
               ],
             }),

@@ -2,7 +2,7 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-    const baseUrl = 'https://mkvcinemas.world';
+    const baseUrl = 'https://www.mkvcinemas.world';
 
     return {
         rules: [

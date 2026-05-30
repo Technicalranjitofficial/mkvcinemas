@@ -8,7 +8,7 @@ import { movieSlug } from '@/lib/slug';
 // Revalidate every 5 minutes for category pages
 export const revalidate = 300;
 
-const BASE_URL = 'https://mkvcinemas.world';
+const BASE_URL = 'https://www.mkvcinemas.world';
 
 const CATEGORY_META: Record<string, { title: string; description: string; keywords: string[] }> = {
     bollywood: {

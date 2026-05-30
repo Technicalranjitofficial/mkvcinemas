@@ -3,7 +3,7 @@ import { MetadataRoute } from 'next';
 import prisma from '@/lib/prisma';
 import { movieSlug } from '@/lib/slug';
 
-const BASE_URL = 'https://mkvcinemas.world';
+const BASE_URL = 'https://www.mkvcinemas.world';
 const CATEGORIES = ['bollywood', 'hollywood', 'south-indian', 'web-series', 'dual-audio', 'action', 'thriller', 'comedy'];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

@@ -30,7 +30,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const movie = await prisma.movie.findUnique({ where: { id } });
   if (!movie) return { title: 'Watch - MKVCinemas' };
 
-  const canonical = `https://mkvcinemas.world/watch/${movieSlug(movie.title, movie.id)}`;
+  const canonical = `https://www.mkvcinemas.world/watch/${movieSlug(movie.title, movie.id)}`;
   const title = `Watch ${movie.title} (${movie.year}) Online Free in HD - MKVCinemas`;
   const plotSnippet = (movie.plot ?? '').substring(0, 130);
   const description = `Watch ${movie.title} (${movie.year}) online free in ${movie.quality} ${movie.audio}. ${plotSnippet}`.substring(0, 160);
@@ -81,7 +81,7 @@ export default async function WatchPage({ params }: Props) {
   const isTV = movie.categories?.includes('Web Series') ?? false;
   const tvSeasons = isTV && movie.tmdbId ? await getTmdbTvSeasons(movie.tmdbId) : [];
 
-  const canonicalUrl = `https://mkvcinemas.world/watch/${movieSlug(movie.title, movie.id)}`;
+  const canonicalUrl = `https://www.mkvcinemas.world/watch/${movieSlug(movie.title, movie.id)}`;
 
   // Use the actual embed player URL for VideoObject.embedUrl (not the watch page)
   const embedUrl = movie.tmdbId?.trim()
@@ -125,7 +125,7 @@ export default async function WatchPage({ params }: Props) {
       '@context': 'https://schema.org',
       '@type': 'BreadcrumbList',
       itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://mkvcinemas.world' },
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.mkvcinemas.world' },
         { '@type': 'ListItem', position: 2, name: movie.title, item: canonicalUrl },
       ],
     },

@@ -20,11 +20,11 @@ const HOME_METADATA: Metadata = {
     'hindi dubbed movies', 'latest movies 2025', 'latest movies 2026', 'new movies download',
     'free movies HD', 'movie download site',
   ],
-  alternates: { canonical: 'https://mkvcinemas.world' },
+  alternates: { canonical: 'https://www.mkvcinemas.world' },
   openGraph: {
     title: 'MKVCinemas - Download Movies & Web Series in HD',
     description: 'Download latest Bollywood, Hollywood, South Indian movies and Web Series in HD quality. Free and Fast at mkvcinemas.world.',
-    url: 'https://mkvcinemas.world',
+    url: 'https://www.mkvcinemas.world',
     siteName: 'MKVCinemas',
     type: 'website',
   },
@@ -44,7 +44,7 @@ export async function generateMetadata({
       title: `Search: "${q}" – MKVCinemas`,
       description: `Search results for "${q}" on MKVCinemas.`,
       robots: { index: false, follow: true },
-      alternates: { canonical: 'https://mkvcinemas.world' },
+      alternates: { canonical: 'https://www.mkvcinemas.world' },
     };
   }
 
@@ -54,7 +54,7 @@ export async function generateMetadata({
       ...HOME_METADATA,
       title: `MKVCinemas – Movies Page ${currentPage} | mkvcinemas.world`,
       robots: { index: false, follow: true },
-      alternates: { canonical: 'https://mkvcinemas.world' },
+      alternates: { canonical: 'https://www.mkvcinemas.world' },
     };
   }
 
