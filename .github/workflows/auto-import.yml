@@ -1,11 +1,7 @@
 name: 🎬 Auto-Import Movies
 
 on:
-  # Run every day at 2:00 AM UTC
-  schedule:
-    - cron: '0 2 * * *'
-
-  # Allow manual trigger from GitHub Actions tab
+  # Manual trigger only — bot runs via VPS cron job instead
   workflow_dispatch:
 
 jobs:
