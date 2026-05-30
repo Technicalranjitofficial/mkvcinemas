@@ -16,16 +16,6 @@ interface VideoEmbedPlayerProps {
   seasons?: Season[];
 }
 
-// Providers that actively detect and block the sandbox attribute (e.g. videasy).
-// These are excluded from sandboxing; popup protection for them comes from the
-// parent-page JavaScript blocker in PopupBlocker.tsx instead.
-const UNSANDBOXABLE_PROVIDERS: ProviderKey[] = ['videasy'];
-
-// Sandbox WITHOUT allow-popups or allow-top-navigation:
-// - prevents the iframe from opening new windows/tabs
-// - prevents the iframe from navigating the parent page
-const IFRAME_SANDBOX =
-  'allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-presentation allow-fullscreen';
 
 // Fallback seasons when TMDB data not available
 const FALLBACK_SEASONS: Season[] = Array.from({ length: 5 }, (_, i) => ({
@@ -140,11 +130,8 @@ export default function VideoEmbedPlayer({ media, seasons = [] }: VideoEmbedPlay
             src={getEmbedUrl()}
             className="absolute inset-0 w-full h-full border-0"
             allowFullScreen
-            allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+            allow="autoplay *; encrypted-media *; fullscreen *; picture-in-picture *"
             referrerPolicy="no-referrer"
-            {...(!UNSANDBOXABLE_PROVIDERS.includes(activeProvider)
-              ? { sandbox: IFRAME_SANDBOX }
-              : {})}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">

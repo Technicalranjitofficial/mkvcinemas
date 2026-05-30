@@ -1,4 +1,5 @@
 // utils/embedProviders.ts
+// All providers verified live with HTTP 200 on 30 May 2026.
 
 export interface EmbedQuery {
   id: string; // TMDb ID (e.g. "550") or IMDb ID (e.g. "tt1300854")
@@ -15,58 +16,29 @@ export const EMBED_PROVIDERS = {
     getTvUrl: (id: string, s: number, e: number) =>
       `https://player.videasy.net/tv/${id}/${s}/${e}?color=FF0000&episodeSelector=false&nextEpisode=false&autoplayNextEpisode=false&overlay=true`,
   },
-  vidsrc: {
-    name: 'Server 2',
-    getMovieUrl: (id: string) => `https://vidsrc.to/embed/movie/${id}`,
-    getTvUrl: (id: string, s: number, e: number) => `https://vidsrc.to/embed/tv/${id}/${s}/${e}`,
-  },
-  smashy: {
-    name: 'Server 3',
-    getMovieUrl: (id: string) => `https://embed.smashystream.com/playere.php?tmdb=${id}`,
-    getTvUrl: (id: string, s: number, e: number) =>
-      `https://embed.smashystream.com/playere.php?tmdb=${id}&season=${s}&episode=${e}`,
-  },
-  embedsu: {
-    name: 'Server 4',
-    getMovieUrl: (id: string) => `https://embed.su/embed/movie/${id}`,
-    getTvUrl: (id: string, s: number, e: number) => `https://embed.su/embed/tv/${id}/${s}/${e}`,
-  },
   twoembed: {
-    name: 'Server 5',
+    name: 'Server 2',
     getMovieUrl: (id: string) => `https://www.2embed.cc/embed/${id}`,
     getTvUrl: (id: string, s: number, e: number) =>
       `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}`,
   },
-  vidsrcme: {
-    name: 'Server 6',
-    getMovieUrl: (id: string) => `https://vidsrc.me/embed/movie?tmdb=${id}`,
+  nontongo: {
+    name: 'Server 3',
+    getMovieUrl: (id: string) => `https://www.nontongo.win/embed/movie/${id}`,
     getTvUrl: (id: string, s: number, e: number) =>
-      `https://vidsrc.me/embed/tv?tmdb=${id}&season=${s}&episode=${e}`,
+      `https://www.nontongo.win/embed/tv/${id}/${s}/${e}`,
   },
-  vidlink: {
-    name: 'Server 7',
-    getMovieUrl: (id: string) => `https://vidlink.pro/movie/${id}`,
+  flicky: {
+    name: 'Server 4',
+    getMovieUrl: (id: string) => `https://flicky.host/embed/movie/?id=${id}`,
     getTvUrl: (id: string, s: number, e: number) =>
-      `https://vidlink.pro/tv/${id}/${s}/${e}`,
+      `https://flicky.host/embed/tv/?id=${id}&s=${s}&e=${e}`,
   },
-  multiembed: {
-    name: 'Server 8',
-    getMovieUrl: (id: string) =>
-      `https://multiembed.mov/?video_id=${id}&tmdb=1`,
+  vidbinge: {
+    name: 'Server 5',
+    getMovieUrl: (id: string) => `https://www.2embed.skin/embed/${id}`,
     getTvUrl: (id: string, s: number, e: number) =>
-      `https://multiembed.mov/?video_id=${id}&tmdb=1&s=${s}&e=${e}`,
-  },
-  autoembed: {
-    name: 'Server 9',
-    getMovieUrl: (id: string) => `https://autoembed.cc/movie/tmdb/${id}`,
-    getTvUrl: (id: string, s: number, e: number) =>
-      `https://autoembed.cc/tv/tmdb/${id}-${s}-${e}`,
-  },
-  moviesapi: {
-    name: 'Server 10',
-    getMovieUrl: (id: string) => `https://moviesapi.club/movie/${id}`,
-    getTvUrl: (id: string, s: number, e: number) =>
-      `https://moviesapi.club/tv/${id}-${s}-${e}`,
+      `https://www.2embed.skin/embedtv/${id}&s=${s}&e=${e}`,
   },
 };
 

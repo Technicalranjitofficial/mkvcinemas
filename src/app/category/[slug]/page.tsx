@@ -115,7 +115,7 @@ export default async function CategoryPage({
     const { slug } = await params;
     const { page } = await searchParams;
     const currentPage = parseInt(page || '1');
-    const itemsPerPage = 12;
+    const itemsPerPage = 24;
 
     const categoryName = slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
@@ -164,16 +164,9 @@ export default async function CategoryPage({
             <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }} />
             <div className="flex-1">
                 <section className="mb-8">
-                    <h1 className="text-xl font-bold text-white mb-6 border-b border-neutral-800 pb-2 flex justify-between items-end">
-                        <span>Category: <span className="text-red-500">{categoryName}</span></span>
-                        <div className="flex gap-2 text-sm">
-                            {currentPage > 1 && (
-                                <a href={`/category/${slug}?page=${currentPage - 1}`} className="text-red-500 hover:underline">Previous</a>
-                            )}
-                            {currentPage < totalPages && (
-                                <a href={`/category/${slug}?page=${currentPage + 1}`} className="text-red-500 hover:underline">Next</a>
-                            )}
-                        </div>
+                    <h1 className="text-xl font-bold text-white mb-6 border-b border-neutral-800 pb-2">
+                        Category: <span className="text-red-500">{categoryName}</span>
+                        <span className="text-sm font-normal text-neutral-500 ml-3">({totalMovies} movies)</span>
                     </h1>
 
                     {movies.length > 0 ? (
@@ -198,16 +191,54 @@ export default async function CategoryPage({
                     )}
 
                     {totalPages > 1 && (
-                        <div className="mt-8 flex justify-center gap-2 text-sm">
-                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                <a
-                                    key={p}
-                                    href={`/category/${slug}?page=${p}`}
-                                    className={`px-3 py-1 rounded ${p === currentPage ? 'bg-red-600 text-white' : 'bg-neutral-800 text-neutral-400 hover:text-white'}`}
-                                >
-                                    {p}
+                        <div className="mt-8 flex flex-wrap justify-center items-center gap-1.5 text-sm">
+                            {/* Prev */}
+                            {currentPage > 1 && (
+                                <a href={`/category/${slug}?page=${currentPage - 1}`}
+                                    className="px-3 py-1.5 rounded bg-neutral-800 text-neutral-300 hover:bg-neutral-700 hover:text-white transition-colors">
+                                    ‹ Prev
                                 </a>
-                            ))}
+                            )}
+
+                            {/* Windowed page numbers */}
+                            {(() => {
+                                const pages: (number | '…')[] = [];
+                                const delta = 2;
+                                const left = currentPage - delta;
+                                const right = currentPage + delta;
+
+                                let last = 0;
+                                for (let p = 1; p <= totalPages; p++) {
+                                    if (p === 1 || p === totalPages || (p >= left && p <= right)) {
+                                        if (last && p - last > 1) pages.push('…');
+                                        pages.push(p);
+                                        last = p;
+                                    }
+                                }
+
+                                return pages.map((p, i) =>
+                                    p === '…' ? (
+                                        <span key={`ellipsis-${i}`} className="px-2 py-1.5 text-neutral-600 select-none">…</span>
+                                    ) : (
+                                        <a key={p} href={`/category/${slug}?page=${p}`}
+                                            className={`px-3 py-1.5 rounded transition-colors ${
+                                                p === currentPage
+                                                    ? 'bg-red-600 text-white font-bold'
+                                                    : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700 hover:text-white'
+                                            }`}>
+                                            {p}
+                                        </a>
+                                    )
+                                );
+                            })()}
+
+                            {/* Next */}
+                            {currentPage < totalPages && (
+                                <a href={`/category/${slug}?page=${currentPage + 1}`}
+                                    className="px-3 py-1.5 rounded bg-neutral-800 text-neutral-300 hover:bg-neutral-700 hover:text-white transition-colors">
+                                    Next ›
+                                </a>
+                            )}
                         </div>
                     )}
                 </section>

@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { Star } from 'lucide-react';
 import prisma from '@/lib/prisma';
-import VideoEmbedPlayer from '@/components/VideoEmbedPlayer';
+import VideoEmbedPlayerWrapper from '@/components/VideoEmbedPlayerWrapper';
 import StreamPlayer from '@/components/StreamPlayer';
 import { Metadata } from 'next';
 import { getTmdbTvSeasons } from '@/app/actions/tmdb';
@@ -225,7 +225,7 @@ export default async function WatchPage({ params }: Props) {
           <h2 className="text-base font-bold text-white mb-3 border-l-4 border-red-600 pl-3">
             Watch Online
           </h2>
-          <VideoEmbedPlayer
+          <VideoEmbedPlayerWrapper
             media={{ id: movie.tmdbId!, type: isTV ? 'tv' : 'movie' }}
             seasons={tvSeasons}
           />
