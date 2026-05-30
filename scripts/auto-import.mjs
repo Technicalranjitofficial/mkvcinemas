@@ -89,28 +89,68 @@ function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
 }
 
+// ── Source definitions ────────────────────────────────────────────────────────
+// Each entry describes one TMDB endpoint + how many pages to pull from it.
+// Total candidates before dedup = sum of (pages × ~20 results).
+const SOURCES = [
+  // Global trending / popular
+  { label: 'Trending (day)',    path: '/trending/movie/day',  pages: 2 },
+  { label: 'Trending (week)',   path: '/trending/movie/week', pages: 3 },
+  { label: 'Now Playing',       path: '/movie/now_playing',   pages: 3 },
+  { label: 'Upcoming',          path: '/movie/upcoming',      pages: 3 },
+  { label: 'Popular',           path: '/movie/popular',       pages: 5 },
+  { label: 'Top Rated',         path: '/movie/top_rated',     pages: 5 },
+
+  // Bollywood — Hindi-language discover
+  { label: 'Bollywood (2026)',  path: '/discover/movie', pages: 3,
+    params: { with_original_language: 'hi', primary_release_year: '2026', sort_by: 'popularity.desc' } },
+  { label: 'Bollywood (2025)',  path: '/discover/movie', pages: 3,
+    params: { with_original_language: 'hi', primary_release_year: '2025', sort_by: 'popularity.desc' } },
+  { label: 'Bollywood (2024)',  path: '/discover/movie', pages: 2,
+    params: { with_original_language: 'hi', primary_release_year: '2024', sort_by: 'popularity.desc' } },
+
+  // South Indian
+  { label: 'Tamil (2026)',      path: '/discover/movie', pages: 2,
+    params: { with_original_language: 'ta', primary_release_year: '2026', sort_by: 'popularity.desc' } },
+  { label: 'Tamil (2025)',      path: '/discover/movie', pages: 2,
+    params: { with_original_language: 'ta', primary_release_year: '2025', sort_by: 'popularity.desc' } },
+  { label: 'Telugu (2026)',     path: '/discover/movie', pages: 2,
+    params: { with_original_language: 'te', primary_release_year: '2026', sort_by: 'popularity.desc' } },
+  { label: 'Telugu (2025)',     path: '/discover/movie', pages: 2,
+    params: { with_original_language: 'te', primary_release_year: '2025', sort_by: 'popularity.desc' } },
+
+  // Hollywood — current + recent years
+  { label: 'Hollywood (2026)',  path: '/discover/movie', pages: 5,
+    params: { with_original_language: 'en', primary_release_year: '2026', sort_by: 'popularity.desc' } },
+  { label: 'Hollywood (2025)',  path: '/discover/movie', pages: 5,
+    params: { with_original_language: 'en', primary_release_year: '2025', sort_by: 'popularity.desc' } },
+  { label: 'Hollywood (2024)',  path: '/discover/movie', pages: 3,
+    params: { with_original_language: 'en', primary_release_year: '2024', sort_by: 'popularity.desc' } },
+];
+
 // ── Data fetchers ─────────────────────────────────────────────────────────────
 async function fetchCandidates() {
-  const [trendDay, trendWeek, nowPlaying, upcoming] = await Promise.all([
-    tmdbGet('/trending/movie/day'),
-    tmdbGet('/trending/movie/week'),
-    tmdbGet('/movie/now_playing'),
-    tmdbGet('/movie/upcoming'),
-  ]);
-
   const seen = new Set();
-  const merged = [
-    ...trendDay.results,
-    ...trendWeek.results,
-    ...nowPlaying.results,
-    ...upcoming.results,
-  ];
+  const all = [];
 
-  return merged.filter(m => {
-    if (seen.has(m.id)) return false;
-    seen.add(m.id);
-    return true;
-  });
+  for (const src of SOURCES) {
+    const fetched = [];
+    for (let page = 1; page <= src.pages; page++) {
+      try {
+        const data = await tmdbGet(src.path, { ...(src.params ?? {}), page: String(page) });
+        fetched.push(...(data.results ?? []));
+        await sleep(150); // small gap between pages
+      } catch (err) {
+        console.log(`    ⚠  ${src.label} page ${page} failed: ${err.message}`);
+        break;
+      }
+    }
+    const unique = fetched.filter(m => { if (seen.has(m.id)) return false; seen.add(m.id); return true; });
+    console.log(`    ${src.label.padEnd(22)} → ${fetched.length} fetched, ${unique.length} unique new`);
+    all.push(...unique);
+  }
+
+  return all;
 }
 
 async function fetchMovieDetails(tmdbId) {
@@ -159,7 +199,7 @@ async function main() {
   console.log(`\n🎬  MKVCinemas Auto-Import Bot — ${now}\n${'─'.repeat(55)}`);
 
   // 1. Fetch candidates from TMDB
-  console.log('📡  Fetching candidates from TMDB (trending + now playing + upcoming)…');
+  console.log('📡  Fetching candidates from TMDB…\n');
   const candidates = await fetchCandidates();
   console.log(`    Got ${candidates.length} unique candidates.`);
 
