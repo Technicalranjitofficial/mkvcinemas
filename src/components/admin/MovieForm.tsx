@@ -87,6 +87,14 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
     const handleTmdbSearch = () => {
         if (!tmdbQuery.trim()) return;
         startTransition(async () => {
+            // If pure number → treat as TMDB ID, try movie first then TV
+            const asId = parseInt(tmdbQuery.trim());
+            if (!isNaN(asId)) {
+                let details = await getTmdbDetails(asId, 'movie');
+                let mediaType: 'movie' | 'tv' = 'movie';
+                if (!details?.title) { details = await getTmdbDetails(asId, 'tv'); mediaType = 'tv'; }
+                if (details) { handleTmdbSelectDetails(asId, mediaType, details); return; }
+            }
             const results = await searchTmdb(tmdbQuery);
             setTmdbResults(results);
         });
@@ -94,32 +102,46 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
 
     const handleTmdbSelect = (result: TmdbSearchResult) => {
         startTransition(async () => {
-            const details = await getTmdbDetails(result.id);
+            const mediaType = result.media_type ?? 'movie';
+            const details = await getTmdbDetails(result.id, mediaType);
             if (!details) return;
-            setTitle(details.title);
-            if (details.release_date) setYear(new Date(details.release_date).getFullYear());
-            setRating(Math.round(details.vote_average * 10) / 10);
-            setPlot(details.overview || '');
-            const dir = details.credits?.crew?.find(c => c.job === 'Director')?.name || '';
-            setDirector(dir);
-            const castList = details.credits?.cast?.slice(0, 6).map(c => c.name).join(', ') || '';
-            setCast(castList);
-            if (details.poster_path) setPosterUrl(`https://image.tmdb.org/t/p/w500${details.poster_path}`);
-            setTmdbId(String(result.id));
-            // Auto-suggest audio based on original language
-            const suggested = suggestAudio(details.original_language ?? result.original_language ?? 'en');
-            setAudio(suggested);
-            const backdrops = (details.images?.backdrops ?? [])
-                .slice(0, 4)
-                .map(b => `https://image.tmdb.org/t/p/w780${b.file_path}`);
-            if (backdrops.length > 0) setScreenshots(backdrops);
-            const mappedCats = (details.genres ?? [])
-                .map(g => TMDB_GENRE_MAP[g.name])
-                .filter(Boolean) as string[];
-            setSelectedCategories([...new Set(mappedCats)]);
-            setTmdbResults([]);
-            setTmdbQuery('');
+            handleTmdbSelectDetails(result.id, mediaType, details);
         });
+    };
+
+    const handleTmdbSelectDetails = (
+        id: number,
+        mediaType: 'movie' | 'tv',
+        details: Awaited<ReturnType<typeof getTmdbDetails>>
+    ) => {
+        if (!details) return;
+        setTitle(details.title);
+        if (details.release_date) setYear(new Date(details.release_date).getFullYear());
+        setRating(Math.round(details.vote_average * 10) / 10);
+        setPlot(details.overview || '');
+        // Director: for TV use Creator / Executive Producer / Director
+        const dir = details.credits?.crew?.find(c =>
+            ['Director', 'Creator', 'Executive Producer'].includes(c.job)
+        )?.name || '';
+        setDirector(dir);
+        const castList = details.credits?.cast?.slice(0, 6).map(c => c.name).join(', ') || '';
+        setCast(castList);
+        if (details.poster_path) setPosterUrl(`https://image.tmdb.org/t/p/w500${details.poster_path}`);
+        setTmdbId(String(id));
+        const suggested = suggestAudio(details.original_language ?? 'en');
+        setAudio(suggested);
+        const backdrops = (details.images?.backdrops ?? [])
+            .slice(0, 4)
+            .map(b => `https://image.tmdb.org/t/p/w780${b.file_path}`);
+        if (backdrops.length > 0) setScreenshots(backdrops);
+        const mappedCats = (details.genres ?? [])
+            .map(g => TMDB_GENRE_MAP[g.name])
+            .filter(Boolean) as string[];
+        // Auto-add Web Series category for TV
+        if (mediaType === 'tv' && !mappedCats.includes('Web Series')) mappedCats.push('Web Series');
+        setSelectedCategories([...new Set(mappedCats)]);
+        setTmdbResults([]);
+        setTmdbQuery('');
     };
 
     const toggleCategory = (cat: string) =>
@@ -154,7 +176,7 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
                         value={tmdbQuery}
                         onChange={e => setTmdbQuery(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleTmdbSearch())}
-                        placeholder="Search movie title on TMDB..."
+                        placeholder="Search title or paste TMDB ID (movies & series)…"
                         className="flex-1 bg-black border border-neutral-700 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                     />
                     <button
@@ -173,7 +195,7 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
                     <div className="bg-black border border-neutral-800 rounded divide-y divide-neutral-800 max-h-64 overflow-y-auto">
                         {tmdbResults.map(result => (
                             <button
-                                key={result.id}
+                                key={`${result.media_type}-${result.id}`}
                                 type="button"
                                 onClick={() => handleTmdbSelect(result)}
                                 className="w-full flex items-center gap-3 p-2 hover:bg-neutral-900 text-left transition-colors"
@@ -184,8 +206,17 @@ export default function MovieForm({ action, initialData, isEdit = false }: Movie
                                 ) : (
                                     <div className="w-10 h-14 bg-neutral-800 rounded shrink-0" />
                                 )}
-                                <div>
-                                    <p className="font-medium text-white text-sm">{result.title}</p>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                        <p className="font-medium text-white text-sm truncate">{result.title}</p>
+                                        <span className={`shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                                            result.media_type === 'tv'
+                                                ? 'bg-purple-700 text-purple-200'
+                                                : 'bg-blue-700 text-blue-200'
+                                        }`}>
+                                            {result.media_type === 'tv' ? 'TV' : 'Movie'}
+                                        </span>
+                                    </div>
                                     <p className="text-neutral-500 text-xs">{result.release_date?.split('-')[0]} · ⭐ {result.vote_average?.toFixed(1)}</p>
                                 </div>
                             </button>

@@ -8,6 +8,7 @@ export interface TmdbSearchResult {
     overview: string;
     vote_average: number;
     original_language: string; // e.g. "hi", "en", "ta", "te"
+    media_type?: 'movie' | 'tv'; // present when result comes from TV search
 }
 
 export interface TmdbMovieDetails {
@@ -35,26 +36,53 @@ export async function searchTmdb(query: string): Promise<TmdbSearchResult[]> {
     const apiKey = process.env.TMDB_API_KEY;
     if (!apiKey || apiKey === 'your_tmdb_api_key_here' || !query.trim()) return [];
     try {
-        const res = await fetch(
-            `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(query)}&language=en-US`,
-            { cache: 'no-store' }
-        );
-        if (!res.ok) return [];
-        const data = await res.json();
-        return (data.results ?? []).slice(0, 8);
+        const [movieRes, tvRes] = await Promise.all([
+            fetch(`https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(query)}&language=en-US`, { cache: 'no-store' }),
+            fetch(`https://api.themoviedb.org/3/search/tv?api_key=${apiKey}&query=${encodeURIComponent(query)}&language=en-US`, { cache: 'no-store' }),
+        ]);
+        const [movieData, tvData] = await Promise.all([
+            movieRes.ok ? movieRes.json() : { results: [] },
+            tvRes.ok   ? tvRes.json()   : { results: [] },
+        ]);
+        // Normalise TV results to match TmdbSearchResult shape
+        const tvNormalised: TmdbSearchResult[] = (tvData.results ?? []).slice(0, 8).map((r: { id: number; name?: string; first_air_date?: string; poster_path: string | null; overview: string; vote_average: number; original_language: string }) => ({
+            id: r.id,
+            title: r.name ?? '',
+            release_date: r.first_air_date ?? '',
+            poster_path: r.poster_path,
+            overview: r.overview,
+            vote_average: r.vote_average,
+            original_language: r.original_language,
+            media_type: 'tv' as const,
+        }));
+        const movieNormalised: TmdbSearchResult[] = (movieData.results ?? []).slice(0, 8).map((r: TmdbSearchResult) => ({ ...r, media_type: 'movie' as const }));
+        // Interleave: movie, tv, movie, tv… so both types appear at the top
+        const merged: TmdbSearchResult[] = [];
+        const max = Math.max(movieNormalised.length, tvNormalised.length);
+        for (let i = 0; i < max; i++) {
+            if (movieNormalised[i]) merged.push(movieNormalised[i]);
+            if (tvNormalised[i])    merged.push(tvNormalised[i]);
+        }
+        return merged.slice(0, 12);
     } catch { return []; }
 }
 
-export async function getTmdbDetails(tmdbId: number): Promise<TmdbMovieDetails | null> {
+export async function getTmdbDetails(tmdbId: number, mediaType: 'movie' | 'tv' = 'movie'): Promise<TmdbMovieDetails | null> {
     const apiKey = process.env.TMDB_API_KEY;
     if (!apiKey || apiKey === 'your_tmdb_api_key_here') return null;
     try {
         const res = await fetch(
-            `https://api.themoviedb.org/3/movie/${tmdbId}?api_key=${apiKey}&append_to_response=credits,images&language=en-US&include_image_language=en,null`,
+            `https://api.themoviedb.org/3/${mediaType}/${tmdbId}?api_key=${apiKey}&append_to_response=credits,images&language=en-US&include_image_language=en,null`,
             { cache: 'no-store' }
         );
         if (!res.ok) return null;
-        return await res.json();
+        const data = await res.json();
+        // Normalise TV fields to movie shape so MovieForm works unchanged
+        if (mediaType === 'tv') {
+            data.title        = data.name ?? data.original_name ?? data.title;
+            data.release_date = data.first_air_date ?? data.release_date;
+        }
+        return data;
     } catch { return null; }
 }
 
