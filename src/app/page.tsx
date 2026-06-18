@@ -1,4 +1,5 @@
 import MovieCard from '@/components/MovieCard';
+import HeroSlider, { HeroMovie } from '@/components/HeroSlider';
 import Sidebar from '@/components/Sidebar';
 import prisma from '@/lib/prisma';
 import Link from 'next/link';
@@ -83,6 +84,50 @@ const CATEGORIES = [
 // Only 6 fields needed for a card — keeps each query lean
 const cardSelect = { id: true, title: true, year: true, posterUrl: true, quality: true, audio: true } as const;
 const ITEMS_PER_PAGE = 12;
+
+// ── Hero slider — fetches TMDB backdrop images server-side ───────────────
+async function getHeroMovies(): Promise<HeroMovie[]> {
+  const TMDB_KEY = process.env.TMDB_API_KEY;
+  if (!TMDB_KEY) return [];
+
+  const candidates = await prisma.movie.findMany({
+    select: { id: true, title: true, year: true, quality: true, audio: true, plot: true, rating: true, posterUrl: true, tmdbId: true, categories: true },
+    where: { tmdbId: { not: null }, rating: { gt: 5 } },
+    orderBy: [{ updatedAt: 'desc' }],
+    take: 24,
+  });
+
+  const results = await Promise.all(
+    candidates.map(async (m) => {
+      const type = m.categories.includes('Web Series') ? 'tv' : 'movie';
+      try {
+        const res = await fetch(
+          `https://api.themoviedb.org/3/${type}/${m.tmdbId}?api_key=${TMDB_KEY}`,
+          { next: { revalidate: 86400 } }
+        );
+        if (!res.ok) return null;
+        const data = await res.json();
+        if (!data.backdrop_path) return null;
+        return {
+          id: m.id,
+          title: m.title,
+          year: m.year,
+          quality: m.quality,
+          audio: m.audio,
+          plot: m.plot,
+          rating: m.rating,
+          posterUrl: m.posterUrl,
+          backdropUrl: `https://image.tmdb.org/t/p/original${data.backdrop_path}`,
+          categories: m.categories,
+        } satisfies HeroMovie;
+      } catch {
+        return null;
+      }
+    })
+  );
+
+  return results.filter((r): r is HeroMovie => r !== null).slice(0, 10);
+}
 
 // ── Streamed latest-movies section ────────────────────────────────────────
 async function LatestMoviesSection({ page }: { page: number }) {
@@ -255,21 +300,30 @@ export default async function Home({
   }
 
   // --- Homepage mode: all sections stream in independently via Suspense ---
-  // Preload the LCP image (first poster) early so the browser starts fetching
-  // it before the LatestMoviesSection Suspense boundary resolves.
-  const lcpMovie = await prisma.movie.findFirst({
-    select: { posterUrl: true },
-    orderBy: [{ year: 'desc' }, { createdAt: 'desc' }],
-  });
+  const [heroMovies, lcpMovie] = await Promise.all([
+    getHeroMovies(),
+    prisma.movie.findFirst({
+      select: { posterUrl: true },
+      orderBy: [{ year: 'desc' }, { createdAt: 'desc' }],
+    }),
+  ]);
   if (lcpMovie?.posterUrl) {
     preload(lcpMovie.posterUrl, { as: 'image', fetchPriority: 'high' });
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8">
-      <div className="flex-1 space-y-12">
+    <>
+      {/* ── Hero Slider — full-width, flush with header ───────────────── */}
+      {heroMovies.length > 0 && (
+        <div className="-mx-4 -mt-8 mb-4">
+          <HeroSlider movies={heroMovies} />
+        </div>
+      )}
 
-        {/* ── Category quick-nav pills ─────────────────────────────────── */}
+      <div className="flex flex-col lg:flex-row gap-8">
+        <div className="flex-1 space-y-12">
+
+          {/* ── Category quick-nav pills ─────────────────────────────────── */}
         <div className="space-y-3">
           {/* Content categories */}
           <div className="flex flex-wrap gap-2">
@@ -312,5 +366,6 @@ export default async function Home({
       </div>
       <Sidebar />
     </div>
+    </>
   );
 }
