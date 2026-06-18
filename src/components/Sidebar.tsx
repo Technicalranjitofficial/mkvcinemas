@@ -43,7 +43,8 @@ function RecentUpdatesSkeleton() {
 
 export default function Sidebar() {
     return (
-        <aside className="w-full lg:w-80 shrink-0 space-y-8">
+        <aside className="w-full lg:w-80 shrink-0">
+            <div className="lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:overflow-x-hidden space-y-8 pb-4 [&::-webkit-scrollbar]:w-1 [&::-webkit-scrollbar-thumb]:bg-neutral-700 [&::-webkit-scrollbar-track]:transparent">
             {/* Telegram Widget */}
             <div className="bg-neutral-900 border border-neutral-800 rounded-md p-4">
                 <h3 className="text-white font-bold mb-3 flex items-center gap-2">
@@ -123,6 +124,7 @@ export default function Sidebar() {
                 <Suspense fallback={<RecentUpdatesSkeleton />}>
                     <RecentUpdatesList />
                 </Suspense>
+            </div>
             </div>
         </aside>
     );
