@@ -126,7 +126,7 @@ export default async function CategoryPage({
         prisma.movie.findMany({
             select: cardSelect,
             where,
-            orderBy: [{ year: 'desc' }, { createdAt: 'desc' }],
+            orderBy: [{ createdAt: 'desc' }, { year: 'desc' }],
             take: itemsPerPage,
             skip: (currentPage - 1) * itemsPerPage,
         }),
