@@ -132,7 +132,6 @@ export default function VideoEmbedPlayer({ media, seasons = [] }: VideoEmbedPlay
             allowFullScreen
             allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
             referrerPolicy="no-referrer"
-            sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
