@@ -146,7 +146,7 @@ async function getHeroMovies(): Promise<HeroMovie[]> {
 // ── Streamed latest-movies section ────────────────────────────────────────
 async function LatestMoviesSection({ page }: { page: number }) {
   const [movies, totalMovies] = await Promise.all([
-    prisma.movie.findMany({ select: cardSelect, orderBy: [{ year: 'desc' }, { updatedAt: 'desc' }], take: ITEMS_PER_PAGE, skip: (page - 1) * ITEMS_PER_PAGE }),
+    prisma.movie.findMany({ select: cardSelect, orderBy: [{ year: 'desc' }, { rating: 'desc' }, { updatedAt: 'desc' }], take: ITEMS_PER_PAGE, skip: (page - 1) * ITEMS_PER_PAGE }),
     prisma.movie.count({}),
   ]);
   const totalPages = Math.ceil(totalMovies / ITEMS_PER_PAGE);
@@ -199,7 +199,7 @@ async function SearchResultsSection({ query, page }: { query: string; page: numb
     ],
   };
   const [movies, totalMovies] = await Promise.all([
-    prisma.movie.findMany({ select: cardSelect, where, orderBy: [{ updatedAt: 'desc' }, { year: 'desc' }], take: ITEMS_PER_PAGE, skip: (page - 1) * ITEMS_PER_PAGE }),
+    prisma.movie.findMany({ select: cardSelect, where, orderBy: [{ year: 'desc' }, { rating: 'desc' }, { updatedAt: 'desc' }], take: ITEMS_PER_PAGE, skip: (page - 1) * ITEMS_PER_PAGE }),
     prisma.movie.count({ where }),
   ]);
   const totalPages = Math.ceil(totalMovies / ITEMS_PER_PAGE);
@@ -248,7 +248,7 @@ async function CategorySection({ cat }: { cat: (typeof CATEGORIES)[number] }) {
   const movies = await prisma.movie.findMany({
     select: cardSelect,
     where: { categories: { has: cat.label } },
-    orderBy: [{ year: 'desc' }, { createdAt: 'desc' }],
+    orderBy: [{ year: 'desc' }, { rating: 'desc' }, { createdAt: 'desc' }],
     take: 6,
   });
   if (!movies.length) return null;
