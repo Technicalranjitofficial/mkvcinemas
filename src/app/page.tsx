@@ -269,6 +269,34 @@ export default async function Home({
     <div className="flex flex-col lg:flex-row gap-8">
       <div className="flex-1 space-y-12">
 
+        {/* ── Category quick-nav pills ─────────────────────────────────── */}
+        <div className="space-y-3">
+          {/* Content categories */}
+          <div className="flex flex-wrap gap-2">
+            {CATEGORIES.slice(0, 6).map((cat) => (
+              <Link
+                key={cat.slug}
+                href={`/category/${cat.slug}`}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${cat.color} text-white hover:bg-white/10 transition-colors`}
+              >
+                {cat.label}
+              </Link>
+            ))}
+          </div>
+          {/* OTT platform pills */}
+          <div className="flex flex-wrap gap-2">
+            {CATEGORIES.slice(6).map((cat) => (
+              <Link
+                key={cat.slug}
+                href={`/category/${cat.slug}`}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold border ${cat.color} text-white hover:bg-white/10 transition-colors`}
+              >
+                {cat.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
         {/* Latest Movies — streams in as soon as its query resolves */}
         <Suspense fallback={<LatestMoviesSkeleton />}>
           <LatestMoviesSection page={currentPage} />
