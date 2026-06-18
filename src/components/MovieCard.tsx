@@ -12,6 +12,8 @@ interface MovieCardProps {
     quality: string;
     audio: string;
     year: number;
+    rating?: number;
+    plot?: string;
     tmdbId?: string | null;
     priority?: boolean;
 }
@@ -31,7 +33,7 @@ function getAudioBadge(audio: string): { label: string; color: string } {
 }
 
 export default function MovieCard({
-    id, title, posterUrl, quality, audio, year, tmdbId, priority = false,
+    id, title, posterUrl, quality, audio, year, rating, plot, tmdbId, priority = false,
 }: MovieCardProps) {
     const audioBadge = getAudioBadge(audio);
 
@@ -125,7 +127,12 @@ export default function MovieCard({
                     </span>
                 </div>
 
-                <div className="absolute bottom-2 right-2 z-20">
+                <div className="absolute bottom-2 right-2 z-20 flex items-center gap-1">
+                    {rating != null && rating > 0 && (
+                        <span className="bg-yellow-500/90 text-black text-[10px] font-bold px-1.5 py-0.5 rounded-sm flex items-center gap-0.5">
+                            ★ {rating.toFixed(1)}
+                        </span>
+                    )}
                     <span className="bg-black/70 text-neutral-300 text-[10px] px-1.5 py-0.5 rounded-sm">
                         {year}
                     </span>
@@ -136,6 +143,11 @@ export default function MovieCard({
                 <h3 className="text-sm font-medium text-neutral-200 line-clamp-2 group-hover:text-red-500 transition-colors leading-tight" title={title}>
                     {title}
                 </h3>
+                {plot && (
+                    <p className="mt-1 text-[11px] text-neutral-400 line-clamp-2 leading-relaxed hidden group-hover:block">
+                        {plot}
+                    </p>
+                )}
                 <p className="mt-1 text-[11px] text-neutral-500 truncate">{audio}</p>
             </div>
         </Link>

@@ -82,7 +82,7 @@ const CATEGORIES = [
 ];
 
 // Only needed fields for a card — keeps each query lean
-const cardSelect = { id: true, title: true, year: true, posterUrl: true, quality: true, audio: true, tmdbId: true } as const;
+const cardSelect = { id: true, title: true, year: true, posterUrl: true, quality: true, audio: true, tmdbId: true, rating: true, plot: true } as const;
 const ITEMS_PER_PAGE = 12;
 
 // ── Hero slider — fetches TMDB backdrop + trailer key server-side ──────────
@@ -146,7 +146,7 @@ async function getHeroMovies(): Promise<HeroMovie[]> {
 // ── Streamed latest-movies section ────────────────────────────────────────
 async function LatestMoviesSection({ page }: { page: number }) {
   const [movies, totalMovies] = await Promise.all([
-    prisma.movie.findMany({ select: cardSelect, orderBy: [{ updatedAt: 'desc' }, { year: 'desc' }], take: ITEMS_PER_PAGE, skip: (page - 1) * ITEMS_PER_PAGE }),
+    prisma.movie.findMany({ select: cardSelect, orderBy: [{ year: 'desc' }, { updatedAt: 'desc' }], take: ITEMS_PER_PAGE, skip: (page - 1) * ITEMS_PER_PAGE }),
     prisma.movie.count({}),
   ]);
   const totalPages = Math.ceil(totalMovies / ITEMS_PER_PAGE);
@@ -162,7 +162,7 @@ async function LatestMoviesSection({ page }: { page: number }) {
       </div>
       {movies.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {movies.map((m, i) => <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} tmdbId={m.tmdbId} priority={i < 4} />)}
+          {movies.map((m, i) => <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} rating={m.rating} plot={m.plot} tmdbId={m.tmdbId} priority={i < 4} />)}
         </div>
       ) : (
         <div className="text-center py-20 text-neutral-500"><p>No movies yet.</p></div>
@@ -215,7 +215,7 @@ async function SearchResultsSection({ query, page }: { query: string; page: numb
       </h2>
       {movies.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {movies.map((m, i) => <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} tmdbId={m.tmdbId} priority={i < 4} />)}
+          {movies.map((m, i) => <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} rating={m.rating} plot={m.plot} tmdbId={m.tmdbId} priority={i < 4} />)}
         </div>
       ) : (
         <div className="text-center py-20 text-neutral-500"><p>No movies found.</p></div>
@@ -262,7 +262,7 @@ async function CategorySection({ cat }: { cat: (typeof CATEGORIES)[number] }) {
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {movies.map((m) => (
-          <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} tmdbId={m.tmdbId} />
+          <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} rating={m.rating} plot={m.plot} tmdbId={m.tmdbId} />
         ))}
       </div>
     </section>

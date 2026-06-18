@@ -178,12 +178,12 @@ export default async function CategoryPage({
 
     const where = { categories: { has: categoryName } };
 
-    const cardSelect = { id: true, title: true, year: true, posterUrl: true, quality: true, audio: true } as const;
+    const cardSelect = { id: true, title: true, year: true, posterUrl: true, quality: true, audio: true, tmdbId: true, rating: true, plot: true } as const;
     const [movies, totalMovies] = await Promise.all([
         prisma.movie.findMany({
             select: cardSelect,
             where,
-            orderBy: [{ updatedAt: 'desc' }, { year: 'desc' }],
+            orderBy: [{ year: 'desc' }, { updatedAt: 'desc' }],
             take: itemsPerPage,
             skip: (currentPage - 1) * itemsPerPage,
         }),
@@ -237,6 +237,9 @@ export default async function CategoryPage({
                                     posterUrl={movie.posterUrl}
                                     quality={movie.quality}
                                     audio={movie.audio}
+                                    rating={movie.rating}
+                                    plot={movie.plot}
+                                    tmdbId={movie.tmdbId}
                                     priority={currentPage === 1 && movies.indexOf(movie) < 4}
                                 />
                             ))}
