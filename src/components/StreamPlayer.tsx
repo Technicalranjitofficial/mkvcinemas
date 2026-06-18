@@ -47,7 +47,7 @@ export default function StreamPlayer({ streamLinks }: { streamLinks: StreamLink[
                     className="absolute inset-0 w-full h-full"
                     frameBorder="0"
                     allowFullScreen
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
                 />
             </div>
 

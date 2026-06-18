@@ -12,7 +12,12 @@ const AD_DOMAINS = [
 ];
 
 // Trusted domains that are allowed to open links
-const TRUSTED_DOMAINS = ['mkvcinemas.world', 't.me', 'telegram.me', 'tmdb.org'];
+const TRUSTED_DOMAINS = [
+  'mkvcinemas.world', 't.me', 'telegram.me', 'tmdb.org',
+  'vidsrc.mov', 'vidsrc.fyi', 'vidrock.net', 'vidnest.fun',
+  'vidking.net', 'vidlink.pro', 'vidfast.pro', 'vidup.to',
+  'videasy.net', '111movies.com', '2embed.cc', 'multiembed.mov'
+];
 
 function isAdSrc(src: string): boolean {
   const s = src.toLowerCase();
@@ -39,7 +44,13 @@ export default function PopupBlocker() {
       if (isTrustedHref(href)) {
         return _originalOpen(url, target);
       }
-      return null;
+      return {
+        closed: false,
+        close: () => {},
+        focus: () => {},
+        blur: () => {},
+        postMessage: () => {},
+      } as any;
     };
 
     // ── 2. Block location.assign / replace (ad redirect scripts) ─────────

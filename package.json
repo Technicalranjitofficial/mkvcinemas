@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
-    "bot": "node --env-file=.env scripts/auto-import.mjs"
+    "bot": "node --env-file=.env scripts/auto-import.mjs",
+    "netflix": "node --env-file=.env scripts/netflix-import.mjs",
+    "tag-netflix": "node --env-file=.env scripts/tag-netflix.mjs"
   },
   "dependencies": {
     "@prisma/client": "5.22.0",

@@ -130,7 +130,7 @@ export default function VideoEmbedPlayer({ media, seasons = [] }: VideoEmbedPlay
             src={getEmbedUrl()}
             className="absolute inset-0 w-full h-full border-0"
             allowFullScreen
-            allow="autoplay *; encrypted-media *; fullscreen *; picture-in-picture *"
+            allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
             referrerPolicy="no-referrer"
           />
         ) : (
