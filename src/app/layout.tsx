@@ -102,7 +102,7 @@ export default function RootLayout({
                   '@id': 'https://www.mkvcinemas.world/#website',
                   url: 'https://www.mkvcinemas.world',
                   name: 'MKVCinemas',
-                  description: 'Download Movies & Web Series in HD quality. Free and Fast.',
+                  description: 'Watch Movies & Web Series online in HD quality.',
                   potentialAction: {
                     '@type': 'SearchAction',
                     target: {
@@ -117,7 +117,7 @@ export default function RootLayout({
                   '@id': 'https://www.mkvcinemas.world/#organization',
                   name: 'MKVCinemas',
                   url: 'https://www.mkvcinemas.world',
-                  description: 'Download Bollywood, Hollywood and South Indian movies and Web Series in HD quality for free.',
+                  description: 'Watch Bollywood, Hollywood and South Indian movies and Web Series online in HD quality.',
                   logo: {
                     '@type': 'ImageObject',
                     '@id': 'https://www.mkvcinemas.world/#logo',
