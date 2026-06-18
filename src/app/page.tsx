@@ -63,14 +63,7 @@ export async function generateMetadata({
 }
 
 const CATEGORIES = [
-  // ── Content categories ─────────────────────────────────────────────────
-  { label: 'Bollywood',    slug: 'bollywood',    color: 'border-orange-500' },
-  { label: 'Hollywood',    slug: 'hollywood',    color: 'border-blue-500'   },
-  { label: 'South Indian', slug: 'south-indian', color: 'border-green-500'  },
-  { label: 'Web Series',   slug: 'web-series',   color: 'border-purple-500' },
-  { label: 'Dual Audio',   slug: 'dual-audio',   color: 'border-yellow-500' },
-  { label: 'Action',       slug: 'action',       color: 'border-red-500'    },
-  // ── OTT Platforms ──────────────────────────────────────────────────────
+  // ── OTT Platforms (shown first) ────────────────────────────────────────
   { label: 'Netflix',      slug: 'netflix',      color: 'border-red-600'    },
   { label: 'Prime Video',  slug: 'prime-video',  color: 'border-sky-500'    },
   { label: 'Disney+',      slug: 'disney-plus',  color: 'border-blue-600'   },
@@ -79,10 +72,17 @@ const CATEGORIES = [
   { label: 'SonyLIV',      slug: 'sonyliv',      color: 'border-pink-500'   },
   { label: 'JioCinema',    slug: 'jiocinema',    color: 'border-indigo-500' },
   { label: 'Apple TV+',    slug: 'apple-tv-plus',color: 'border-neutral-400'},
+  // ── Content categories ──────────────────────────────────────────────────
+  { label: 'Bollywood',    slug: 'bollywood',    color: 'border-orange-500' },
+  { label: 'Hollywood',    slug: 'hollywood',    color: 'border-blue-500'   },
+  { label: 'South Indian', slug: 'south-indian', color: 'border-green-500'  },
+  { label: 'Web Series',   slug: 'web-series',   color: 'border-purple-500' },
+  { label: 'Dual Audio',   slug: 'dual-audio',   color: 'border-yellow-500' },
+  { label: 'Action',       slug: 'action',       color: 'border-red-500'    },
 ];
 
-// Only 6 fields needed for a card — keeps each query lean
-const cardSelect = { id: true, title: true, year: true, posterUrl: true, quality: true, audio: true } as const;
+// Only needed fields for a card — keeps each query lean
+const cardSelect = { id: true, title: true, year: true, posterUrl: true, quality: true, audio: true, tmdbId: true } as const;
 const ITEMS_PER_PAGE = 12;
 
 // ── Hero slider — fetches TMDB backdrop + trailer key server-side ──────────
@@ -162,7 +162,7 @@ async function LatestMoviesSection({ page }: { page: number }) {
       </div>
       {movies.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {movies.map((m, i) => <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} priority={i < 4} />)}
+          {movies.map((m, i) => <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} tmdbId={m.tmdbId} priority={i < 4} />)}
         </div>
       ) : (
         <div className="text-center py-20 text-neutral-500"><p>No movies yet.</p></div>
@@ -215,7 +215,7 @@ async function SearchResultsSection({ query, page }: { query: string; page: numb
       </h2>
       {movies.length > 0 ? (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-          {movies.map((m, i) => <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} priority={i < 4} />)}
+          {movies.map((m, i) => <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} tmdbId={m.tmdbId} priority={i < 4} />)}
         </div>
       ) : (
         <div className="text-center py-20 text-neutral-500"><p>No movies found.</p></div>
@@ -262,7 +262,7 @@ async function CategorySection({ cat }: { cat: (typeof CATEGORIES)[number] }) {
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {movies.map((m) => (
-          <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} />
+          <MovieCard key={m.id} id={m.id} title={m.title} year={m.year} posterUrl={m.posterUrl} quality={m.quality} audio={m.audio} tmdbId={m.tmdbId} />
         ))}
       </div>
     </section>
@@ -339,9 +339,9 @@ export default async function Home({
 
           {/* ── Category quick-nav pills ─────────────────────────────────── */}
         <div className="space-y-3">
-          {/* Content categories */}
+          {/* OTT Platform pills */}
           <div className="flex flex-wrap gap-2">
-            {CATEGORIES.slice(0, 6).map((cat) => (
+            {CATEGORIES.slice(0, 8).map((cat) => (
               <Link
                 key={cat.slug}
                 href={`/category/${cat.slug}`}
@@ -351,9 +351,9 @@ export default async function Home({
               </Link>
             ))}
           </div>
-          {/* OTT platform pills */}
+          {/* Content category pills */}
           <div className="flex flex-wrap gap-2">
-            {CATEGORIES.slice(6).map((cat) => (
+            {CATEGORIES.slice(8).map((cat) => (
               <Link
                 key={cat.slug}
                 href={`/category/${cat.slug}`}
