@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Play, Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, Star, Volume2, VolumeX } from 'lucide-react';
 import { movieSlug } from '@/lib/slug';
 
 export interface HeroMovie {
@@ -17,29 +17,48 @@ export interface HeroMovie {
   posterUrl: string;
   backdropUrl: string;
   categories: string[];
+  trailerKey: string | null;
 }
 
 export default function HeroSlider({ movies }: { movies: HeroMovie[] }) {
-  const [current, setCurrent] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setInterval>>(undefined);
+  const [current, setCurrent]       = useState(0);
+  const [paused, setPaused]         = useState(false);
+  const [showVideo, setShowVideo]   = useState(false);  // true after 2s on slide
+  const [muted, setMuted]           = useState(true);
+  const timerRef                    = useRef<ReturnType<typeof setInterval>>(undefined);
+  const videoTimerRef               = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const goTo = useCallback((i: number) => {
+    setShowVideo(false);
     setCurrent((i + movies.length) % movies.length);
   }, [movies.length]);
 
   const next = useCallback(() => goTo(current + 1), [current, goTo]);
   const prev = useCallback(() => goTo(current - 1), [current, goTo]);
 
+  // Auto-advance
   useEffect(() => {
     if (paused) return;
-    timerRef.current = setInterval(next, 5500);
+    timerRef.current = setInterval(next, showVideo ? 30000 : 5500);
     return () => clearInterval(timerRef.current);
-  }, [next, paused]);
+  }, [next, paused, showVideo]);
+
+  // Delay showing video so backdrop is visible first
+  useEffect(() => {
+    setShowVideo(false);
+    clearTimeout(videoTimerRef.current);
+    if (movies[current]?.trailerKey) {
+      videoTimerRef.current = setTimeout(() => setShowVideo(true), 2000);
+    }
+    return () => clearTimeout(videoTimerRef.current);
+  }, [current, movies]);
 
   if (!movies.length) return null;
 
   const m = movies[current];
+  const videoSrc = m.trailerKey
+    ? `https://www.youtube.com/embed/${m.trailerKey}?autoplay=1&mute=${muted ? 1 : 0}&controls=0&modestbranding=1&loop=1&playlist=${m.trailerKey}&showinfo=0&rel=0&iv_load_policy=3&enablejsapi=0`
+    : null;
 
   return (
     <div
@@ -47,7 +66,7 @@ export default function HeroSlider({ movies }: { movies: HeroMovie[] }) {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {/* Backdrop stack — all rendered, transitions via opacity */}
+      {/* ── Backdrop images (all pre-rendered, cross-fade via opacity) ── */}
       {movies.map((movie, i) => (
         <div
           key={movie.id}
@@ -66,16 +85,30 @@ export default function HeroSlider({ movies }: { movies: HeroMovie[] }) {
         </div>
       ))}
 
-      {/* Gradient overlays */}
+      {/* ── YouTube trailer (renders over backdrop when ready) ── */}
+      {showVideo && videoSrc && (
+        <div className="absolute inset-0 z-15 transition-opacity duration-700 opacity-100">
+          <iframe
+            key={`${m.trailerKey}-${muted}`}
+            src={videoSrc}
+            className="absolute w-[300%] h-[300%] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            allow="autoplay; encrypted-media"
+            allowFullScreen={false}
+            title={`${m.title} trailer`}
+          />
+        </div>
+      )}
+
+      {/* ── Gradients ── */}
       <div className="absolute inset-0 z-20 bg-linear-to-r from-black/90 via-black/40 to-transparent" />
       <div className="absolute inset-0 z-20 bg-linear-to-t from-black via-black/20 to-transparent" />
 
-      {/* Content */}
+      {/* ── Content overlay ── */}
       <div className="absolute inset-0 z-30 flex items-end pb-14 px-5 sm:px-10 md:px-14">
         <div className="max-w-xl w-full">
           {/* Category chips */}
           <div className="flex flex-wrap gap-1.5 mb-3">
-            {m.categories.filter(c => c !== 'Bollywood' || m.categories.length === 1).slice(0, 3).map(cat => (
+            {m.categories.slice(0, 3).map(cat => (
               <Link
                 key={cat}
                 href={`/category/${cat.toLowerCase().replace(/ /g, '-').replace('+', '-plus')}`}
@@ -100,12 +133,15 @@ export default function HeroSlider({ movies }: { movies: HeroMovie[] }) {
               </span>
             )}
             <span className="text-neutral-400">{m.year}</span>
-            <span className="bg-blue-600 text-white font-bold px-1.5 py-0.5 rounded-sm">
-              {m.quality}
-            </span>
+            <span className="bg-blue-600 text-white font-bold px-1.5 py-0.5 rounded-sm">{m.quality}</span>
             <span className="bg-yellow-500 text-black font-bold px-1.5 py-0.5 rounded-sm">
               {m.audio.length > 12 ? m.audio.split(' ').slice(0, 2).join(' ') : m.audio}
             </span>
+            {showVideo && m.trailerKey && (
+              <span className="flex items-center gap-1 text-green-400 text-[10px] font-bold animate-pulse">
+                ▶ Trailer Playing
+              </span>
+            )}
           </div>
 
           {/* Plot */}
@@ -123,8 +159,19 @@ export default function HeroSlider({ movies }: { movies: HeroMovie[] }) {
         </div>
       </div>
 
-      {/* Progress bar */}
-      {!paused && (
+      {/* ── Mute / Unmute button (only when trailer is playing) ── */}
+      {showVideo && m.trailerKey && (
+        <button
+          onClick={() => setMuted(v => !v)}
+          className="absolute bottom-16 right-4 sm:right-6 z-40 bg-black/60 hover:bg-black/90 text-white rounded-full p-2 transition-colors backdrop-blur-sm border border-white/20"
+          aria-label={muted ? 'Unmute trailer' : 'Mute trailer'}
+        >
+          {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+        </button>
+      )}
+
+      {/* ── Progress bar (only while image is showing, not during video) ── */}
+      {!paused && !showVideo && (
         <div className="absolute bottom-0 left-0 right-0 z-40 h-0.5 bg-white/10">
           <div
             key={current}
@@ -133,7 +180,7 @@ export default function HeroSlider({ movies }: { movies: HeroMovie[] }) {
         </div>
       )}
 
-      {/* Prev / Next arrows */}
+      {/* ── Prev / Next arrows ── */}
       <button
         onClick={prev}
         className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-40 bg-black/50 hover:bg-black/80 text-white rounded-full p-1.5 sm:p-2 transition-colors backdrop-blur-sm"
@@ -149,7 +196,7 @@ export default function HeroSlider({ movies }: { movies: HeroMovie[] }) {
         <ChevronRight size={20} />
       </button>
 
-      {/* Dot / pill indicators */}
+      {/* ── Dot / pill indicators ── */}
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-1.5">
         {movies.map((_, i) => (
           <button
@@ -157,9 +204,7 @@ export default function HeroSlider({ movies }: { movies: HeroMovie[] }) {
             onClick={() => goTo(i)}
             aria-label={`Go to slide ${i + 1}`}
             className={`rounded-full transition-all duration-300 ${
-              i === current
-                ? 'w-6 h-2 bg-red-500'
-                : 'w-2 h-2 bg-white/30 hover:bg-white/60'
+              i === current ? 'w-6 h-2 bg-red-500' : 'w-2 h-2 bg-white/30 hover:bg-white/60'
             }`}
           />
         ))}

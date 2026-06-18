@@ -85,7 +85,7 @@ const CATEGORIES = [
 const cardSelect = { id: true, title: true, year: true, posterUrl: true, quality: true, audio: true } as const;
 const ITEMS_PER_PAGE = 12;
 
-// ── Hero slider — fetches TMDB backdrop images server-side ───────────────
+// ── Hero slider — fetches TMDB backdrop + trailer key server-side ──────────
 async function getHeroMovies(): Promise<HeroMovie[]> {
   const TMDB_KEY = process.env.TMDB_API_KEY;
   if (!TMDB_KEY) return [];
@@ -101,13 +101,26 @@ async function getHeroMovies(): Promise<HeroMovie[]> {
     candidates.map(async (m) => {
       const type = m.categories.includes('Web Series') ? 'tv' : 'movie';
       try {
-        const res = await fetch(
-          `https://api.themoviedb.org/3/${type}/${m.tmdbId}?api_key=${TMDB_KEY}`,
-          { next: { revalidate: 86400 } }
-        );
-        if (!res.ok) return null;
-        const data = await res.json();
+        const [detailRes, videoRes] = await Promise.all([
+          fetch(`https://api.themoviedb.org/3/${type}/${m.tmdbId}?api_key=${TMDB_KEY}`, { next: { revalidate: 86400 } }),
+          fetch(`https://api.themoviedb.org/3/${type}/${m.tmdbId}/videos?api_key=${TMDB_KEY}`, { next: { revalidate: 86400 } }),
+        ]);
+        if (!detailRes.ok) return null;
+        const data = await detailRes.json();
         if (!data.backdrop_path) return null;
+
+        // Find first YouTube official trailer, fall back to teaser
+        let trailerKey: string | null = null;
+        if (videoRes.ok) {
+          const vdata = await videoRes.json();
+          const videos: { site: string; type: string; key: string; official?: boolean }[] = vdata.results ?? [];
+          const trailer =
+            videos.find(v => v.site === 'YouTube' && v.type === 'Trailer' && v.official) ??
+            videos.find(v => v.site === 'YouTube' && v.type === 'Trailer') ??
+            videos.find(v => v.site === 'YouTube' && v.type === 'Teaser');
+          trailerKey = trailer?.key ?? null;
+        }
+
         return {
           id: m.id,
           title: m.title,
@@ -119,6 +132,7 @@ async function getHeroMovies(): Promise<HeroMovie[]> {
           posterUrl: m.posterUrl,
           backdropUrl: `https://image.tmdb.org/t/p/original${data.backdrop_path}`,
           categories: m.categories,
+          trailerKey,
         } satisfies HeroMovie;
       } catch {
         return null;
