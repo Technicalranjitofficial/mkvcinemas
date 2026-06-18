@@ -77,7 +77,7 @@ const ITEMS_PER_PAGE = 12;
 // ── Streamed latest-movies section ────────────────────────────────────────
 async function LatestMoviesSection({ page }: { page: number }) {
   const [movies, totalMovies] = await Promise.all([
-    prisma.movie.findMany({ select: cardSelect, orderBy: [{ createdAt: 'desc' }, { year: 'desc' }], take: ITEMS_PER_PAGE, skip: (page - 1) * ITEMS_PER_PAGE }),
+    prisma.movie.findMany({ select: cardSelect, orderBy: [{ updatedAt: 'desc' }, { year: 'desc' }], take: ITEMS_PER_PAGE, skip: (page - 1) * ITEMS_PER_PAGE }),
     prisma.movie.count({}),
   ]);
   const totalPages = Math.ceil(totalMovies / ITEMS_PER_PAGE);
@@ -130,7 +130,7 @@ async function SearchResultsSection({ query, page }: { query: string; page: numb
     ],
   };
   const [movies, totalMovies] = await Promise.all([
-    prisma.movie.findMany({ select: cardSelect, where, orderBy: [{ createdAt: 'desc' }, { year: 'desc' }], take: ITEMS_PER_PAGE, skip: (page - 1) * ITEMS_PER_PAGE }),
+    prisma.movie.findMany({ select: cardSelect, where, orderBy: [{ updatedAt: 'desc' }, { year: 'desc' }], take: ITEMS_PER_PAGE, skip: (page - 1) * ITEMS_PER_PAGE }),
     prisma.movie.count({ where }),
   ]);
   const totalPages = Math.ceil(totalMovies / ITEMS_PER_PAGE);
