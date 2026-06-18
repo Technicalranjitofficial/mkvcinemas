@@ -14,6 +14,5 @@ README.md
 .idea
 docker-compose*.yml
 nginx/
-scripts/
 browser-extension/
 check-streams.js
