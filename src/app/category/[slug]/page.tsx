@@ -7,6 +7,7 @@ import { movieSlug } from '@/lib/slug';
 
 // Revalidate every 5 minutes for category pages
 export const revalidate = 300;
+const CURRENT_YEAR = new Date().getFullYear();
 
 const BASE_URL = 'https://www.mkvcinemas.world';
 
@@ -176,7 +177,7 @@ export default async function CategoryPage({
 
     const categoryName = SLUG_TO_LABEL[slug] ?? slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
-    const where = { categories: { has: categoryName } };
+    const where = { categories: { has: categoryName }, year: { lte: CURRENT_YEAR }, rating: { gt: 0 } };
 
     const cardSelect = { id: true, title: true, year: true, posterUrl: true, quality: true, audio: true, tmdbId: true, rating: true, plot: true } as const;
     const [movies, totalMovies] = await Promise.all([

@@ -9,6 +9,7 @@ import { Suspense } from 'react';
 import { preload } from 'react-dom';
 
 export const revalidate = 300;
+const CURRENT_YEAR = new Date().getFullYear();
 
 const HOME_METADATA: Metadata = {
   title: 'MKVCinemas - Download Movies & Web Series in HD | mkvcinemas.world',
@@ -92,7 +93,7 @@ async function getHeroMovies(): Promise<HeroMovie[]> {
 
   const candidates = await prisma.movie.findMany({
     select: { id: true, title: true, year: true, quality: true, audio: true, plot: true, rating: true, posterUrl: true, tmdbId: true, categories: true },
-    where: { tmdbId: { not: null }, rating: { gt: 5 } },
+    where: { tmdbId: { not: null }, rating: { gt: 5 }, year: { lte: CURRENT_YEAR } },
     orderBy: [{ updatedAt: 'desc' }],
     take: 24,
   });
@@ -145,9 +146,10 @@ async function getHeroMovies(): Promise<HeroMovie[]> {
 
 // ── Streamed latest-movies section ────────────────────────────────────────
 async function LatestMoviesSection({ page }: { page: number }) {
+  const where = { year: { lte: CURRENT_YEAR }, rating: { gt: 0 } };
   const [movies, totalMovies] = await Promise.all([
-    prisma.movie.findMany({ select: cardSelect, orderBy: [{ year: 'desc' }, { rating: 'desc' }, { updatedAt: 'desc' }], take: ITEMS_PER_PAGE, skip: (page - 1) * ITEMS_PER_PAGE }),
-    prisma.movie.count({}),
+    prisma.movie.findMany({ select: cardSelect, where, orderBy: [{ year: 'desc' }, { rating: 'desc' }, { updatedAt: 'desc' }], take: ITEMS_PER_PAGE, skip: (page - 1) * ITEMS_PER_PAGE }),
+    prisma.movie.count({ where }),
   ]);
   const totalPages = Math.ceil(totalMovies / ITEMS_PER_PAGE);
 
@@ -193,6 +195,8 @@ function LatestMoviesSkeleton() {
 // ── Streamed search-results section ──────────────────────────────────────
 async function SearchResultsSection({ query, page }: { query: string; page: number }) {
   const where = {
+    year: { lte: CURRENT_YEAR },
+    rating: { gt: 0 },
     OR: [
       { title: { contains: query, mode: 'insensitive' as const } },
       { cast:  { contains: query, mode: 'insensitive' as const } },
@@ -247,7 +251,7 @@ function SearchResultsSkeleton({ query }: { query: string }) {
 async function CategorySection({ cat }: { cat: (typeof CATEGORIES)[number] }) {
   const movies = await prisma.movie.findMany({
     select: cardSelect,
-    where: { categories: { has: cat.label } },
+    where: { categories: { has: cat.label }, year: { lte: CURRENT_YEAR }, rating: { gt: 0 } },
     orderBy: [{ year: 'desc' }, { rating: 'desc' }, { createdAt: 'desc' }],
     take: 6,
   });
@@ -318,6 +322,7 @@ export default async function Home({
     getHeroMovies(),
     prisma.movie.findFirst({
       select: { posterUrl: true },
+      where: { year: { lte: CURRENT_YEAR }, rating: { gt: 0 } },
       orderBy: [{ year: 'desc' }, { createdAt: 'desc' }],
     }),
   ]);
