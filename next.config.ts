@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Produce a self-contained output folder — required for Docker deployment
+  output: 'standalone',
+
   // ── Image optimisation ──────────────────────────────────────────────────
   images: {
     // AVIF → WebP → original fallback (AVIF is 30–50 % smaller than WebP)
