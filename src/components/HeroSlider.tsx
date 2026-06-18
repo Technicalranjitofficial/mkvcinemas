@@ -66,7 +66,7 @@ export default function HeroSlider({ movies }: { movies: HeroMovie[] }) {
 
   const m = movies[current];
   const videoSrc = m.trailerKey
-    ? `https://www.youtube.com/embed/${m.trailerKey}?autoplay=1&mute=${muted ? 1 : 0}&controls=0&modestbranding=1&loop=1&playlist=${m.trailerKey}&showinfo=0&rel=0&iv_load_policy=3&enablejsapi=0`
+    ? `https://www.youtube.com/embed/${m.trailerKey}?autoplay=1&mute=${muted ? 1 : 0}&controls=0&disablekb=1&fs=0&playsinline=1&modestbranding=1&loop=1&playlist=${m.trailerKey}&showinfo=0&rel=0&iv_load_policy=3&enablejsapi=0`
     : null;
 
   return (
@@ -105,6 +105,8 @@ export default function HeroSlider({ movies }: { movies: HeroMovie[] }) {
             allowFullScreen={false}
             title={`${m.title} trailer`}
           />
+          {/* Transparent blocker — prevents YouTube controls from ever showing */}
+          <div className="absolute inset-0 z-10" />
         </div>
       )}
 
