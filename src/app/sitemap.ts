@@ -3,6 +3,9 @@ import { MetadataRoute } from 'next';
 import prisma from '@/lib/prisma';
 import { movieSlug } from '@/lib/slug';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const BASE_URL = 'https://www.mkvcinemas.world';
 const CURRENT_YEAR = new Date().getFullYear();
 const CATEGORIES = [
@@ -17,8 +20,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             select: { id: true, title: true, updatedAt: true },
             where: { year: { lte: CURRENT_YEAR }, rating: { gt: 0 } },
         });
-    } catch {
-        // DB unavailable at build time — return static-only sitemap
+    } catch (e) {
+        console.error('Sitemap DB error:', e);
+        // Return static-only sitemap if DB unavailable
     }
 
     const watchEntries: MetadataRoute.Sitemap = movies.map((movie) => ({
