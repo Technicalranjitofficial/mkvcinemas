@@ -7,9 +7,14 @@ const BASE_URL = 'https://www.mkvcinemas.world';
 const CATEGORIES = ['bollywood', 'hollywood', 'south-indian', 'web-series', 'dual-audio', 'action', 'thriller', 'comedy'];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const movies = await prisma.movie.findMany({
-        select: { id: true, title: true, updatedAt: true },
-    });
+    let movies: { id: string; title: string; updatedAt: Date }[] = [];
+    try {
+        movies = await prisma.movie.findMany({
+            select: { id: true, title: true, updatedAt: true },
+        });
+    } catch {
+        // DB unavailable at build time — return static-only sitemap
+    }
 
     const watchEntries: MetadataRoute.Sitemap = movies.map((movie) => ({
         url: `${BASE_URL}/watch/${movieSlug(movie.title, movie.id)}`,
