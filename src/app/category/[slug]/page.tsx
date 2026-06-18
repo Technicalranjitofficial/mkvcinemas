@@ -10,6 +10,21 @@ export const revalidate = 300;
 
 const BASE_URL = 'https://www.mkvcinemas.world';
 
+// Slug → exact DB category label (for slugs that can't be derived by capitalising)
+const SLUG_TO_LABEL: Record<string, string> = {
+    'netflix':       'Netflix',
+    'prime-video':   'Prime Video',
+    'disney-plus':   'Disney+',
+    'apple-tv-plus': 'Apple TV+',
+    'hbo':           'HBO',
+    'hulu':          'Hulu',
+    'zee5':          'Zee5',
+    'sonyliv':       'SonyLIV',
+    'jiocinema':     'JioCinema',
+    'mx-player':     'MX Player',
+    'aha':           'Aha',
+};
+
 const CATEGORY_META: Record<string, { title: string; description: string; keywords: string[] }> = {
     bollywood: {
         title: 'Bollywood Movies Download 480p 720p 1080p - MKVCinemas',
@@ -51,11 +66,53 @@ const CATEGORY_META: Record<string, { title: string; description: string; keywor
         description: 'Download latest Comedy movies in 480p, 720p, 1080p quality. Funny Bollywood Hollywood comedy movies at MKVCinemas.',
         keywords: ['comedy movies download', 'funny movies HD', 'Bollywood comedy', 'Hollywood comedy movies 2025'],
     },
+    // ── OTT Platforms ────────────────────────────────────────────────────
+    netflix: {
+        title: 'Netflix Movies & Series Download HD 480p 720p 1080p - MKVCinemas',
+        description: 'Download latest Netflix original movies and web series in 480p, 720p, 1080p quality for free at MKVCinemas.',
+        keywords: ['Netflix movies download', 'Netflix series download', 'Netflix originals HD', 'download Netflix 2025', 'download Netflix 2026'],
+    },
+    'prime-video': {
+        title: 'Amazon Prime Video Movies & Series Download HD - MKVCinemas',
+        description: 'Download Amazon Prime Video original movies and series in HD 480p, 720p, 1080p quality free at MKVCinemas.',
+        keywords: ['Amazon Prime movies download', 'Prime Video series download', 'Prime originals HD', 'download Prime Video 2025'],
+    },
+    'disney-plus': {
+        title: 'Disney+ Hotstar Movies & Series Download HD - MKVCinemas',
+        description: 'Download Disney+ Hotstar movies and web series in HD 480p, 720p, 1080p quality free at MKVCinemas.',
+        keywords: ['Disney Plus download', 'Disney+ Hotstar movies', 'Marvel series download', 'Star Wars download', 'Hotstar HD 2025'],
+    },
+    'apple-tv-plus': {
+        title: 'Apple TV+ Movies & Series Download HD - MKVCinemas',
+        description: 'Download Apple TV+ original movies and series in HD quality for free at MKVCinemas.',
+        keywords: ['Apple TV Plus download', 'Apple TV+ originals', 'Apple TV series HD', 'download Apple TV 2025'],
+    },
+    hbo: {
+        title: 'HBO / Max Movies & Series Download HD - MKVCinemas',
+        description: 'Download HBO and Max original movies and series in HD 480p, 720p, 1080p quality free at MKVCinemas.',
+        keywords: ['HBO movies download', 'HBO Max series download', 'HBO originals HD', 'download HBO 2025'],
+    },
+    zee5: {
+        title: 'Zee5 Movies & Web Series Download HD - MKVCinemas',
+        description: 'Download Zee5 original movies and web series in HD quality free at MKVCinemas.',
+        keywords: ['Zee5 movies download', 'Zee5 web series download', 'Zee5 originals HD', 'download Zee5 2025'],
+    },
+    sonyliv: {
+        title: 'SonyLIV Movies & Web Series Download HD - MKVCinemas',
+        description: 'Download SonyLIV original movies and web series in HD quality free at MKVCinemas.',
+        keywords: ['SonyLIV download', 'SonyLIV series HD', 'Sony originals download', 'download SonyLIV 2025'],
+    },
+    jiocinema: {
+        title: 'JioCinema Movies & Web Series Download HD - MKVCinemas',
+        description: 'Download JioCinema original movies and web series in HD quality free at MKVCinemas.',
+        keywords: ['JioCinema download', 'JioCinema series HD', 'Jio originals download', 'download JioCinema 2025'],
+    },
 };
 
 export async function generateStaticParams() {
     return Object.keys(CATEGORY_META).map((slug) => ({ slug }));
 }
+
 
 export async function generateMetadata({
     params,
@@ -68,7 +125,7 @@ export async function generateMetadata({
     const { page } = await searchParams;
     const currentPage = parseInt(page || '1', 10);
     const meta = CATEGORY_META[slug];
-    const categoryName = slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    const categoryName = SLUG_TO_LABEL[slug] ?? slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
 
     const title = meta?.title ?? `${categoryName} Movies Download HD - MKVCinemas`;
     const description = meta?.description ?? `Download ${categoryName} movies in 480p, 720p, 1080p quality for free at MKVCinemas.`;
@@ -117,7 +174,7 @@ export default async function CategoryPage({
     const currentPage = parseInt(page || '1');
     const itemsPerPage = 24;
 
-    const categoryName = slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    const categoryName = SLUG_TO_LABEL[slug] ?? slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 
     const where = { categories: { has: categoryName } };
 

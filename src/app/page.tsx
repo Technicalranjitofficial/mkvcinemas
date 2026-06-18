@@ -62,12 +62,22 @@ export async function generateMetadata({
 }
 
 const CATEGORIES = [
+  // ── Content categories ─────────────────────────────────────────────────
   { label: 'Bollywood',    slug: 'bollywood',    color: 'border-orange-500' },
   { label: 'Hollywood',    slug: 'hollywood',    color: 'border-blue-500'   },
   { label: 'South Indian', slug: 'south-indian', color: 'border-green-500'  },
   { label: 'Web Series',   slug: 'web-series',   color: 'border-purple-500' },
   { label: 'Dual Audio',   slug: 'dual-audio',   color: 'border-yellow-500' },
   { label: 'Action',       slug: 'action',       color: 'border-red-500'    },
+  // ── OTT Platforms ──────────────────────────────────────────────────────
+  { label: 'Netflix',      slug: 'netflix',      color: 'border-red-600'    },
+  { label: 'Prime Video',  slug: 'prime-video',  color: 'border-sky-500'    },
+  { label: 'Disney+',      slug: 'disney-plus',  color: 'border-blue-600'   },
+  { label: 'HBO',          slug: 'hbo',          color: 'border-purple-700' },
+  { label: 'Zee5',         slug: 'zee5',         color: 'border-violet-500' },
+  { label: 'SonyLIV',      slug: 'sonyliv',      color: 'border-pink-500'   },
+  { label: 'JioCinema',    slug: 'jiocinema',    color: 'border-indigo-500' },
+  { label: 'Apple TV+',    slug: 'apple-tv-plus',color: 'border-neutral-400'},
 ];
 
 // Only 6 fields needed for a card — keeps each query lean

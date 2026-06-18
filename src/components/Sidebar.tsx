@@ -67,13 +67,48 @@ export default function Sidebar() {
                     Categories
                 </h3>
                 <ul className="space-y-2 text-sm text-neutral-400">
-                    {['Bollywood', 'Hollywood', 'South Indian', 'Punjabi', 'Web Series', 'Dual Audio', 'Netflix', 'Amazon Prime'].map((cat) => (
-                        <li key={cat}>
+                    {[
+                        { label: 'Bollywood',    slug: 'bollywood'    },
+                        { label: 'Hollywood',    slug: 'hollywood'    },
+                        { label: 'South Indian', slug: 'south-indian' },
+                        { label: 'Web Series',   slug: 'web-series'   },
+                        { label: 'Dual Audio',   slug: 'dual-audio'   },
+                        { label: 'Action',       slug: 'action'       },
+                    ].map(({ label, slug }) => (
+                        <li key={slug}>
                             <Link
-                                href={`/category/${cat.toLowerCase().replace(/ /g, '-')}`}
+                                href={`/category/${slug}`}
                                 className="hover:text-red-500 transition-colors block py-1 border-b border-neutral-800/50"
                             >
-                                {cat}
+                                {label}
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
+            {/* OTT Platforms */}
+            <div className="bg-neutral-900 border border-neutral-800 rounded-md p-4">
+                <h3 className="text-white font-bold mb-3 border-l-4 border-sky-500 pl-3">
+                    OTT Platforms
+                </h3>
+                <ul className="space-y-2 text-sm text-neutral-400">
+                    {[
+                        { label: 'Netflix',     slug: 'netflix',       color: 'text-red-500'    },
+                        { label: 'Prime Video', slug: 'prime-video',   color: 'text-sky-400'    },
+                        { label: 'Disney+',     slug: 'disney-plus',   color: 'text-blue-400'   },
+                        { label: 'HBO',         slug: 'hbo',           color: 'text-purple-400' },
+                        { label: 'Zee5',        slug: 'zee5',          color: 'text-violet-400' },
+                        { label: 'SonyLIV',     slug: 'sonyliv',       color: 'text-pink-400'   },
+                        { label: 'JioCinema',   slug: 'jiocinema',     color: 'text-indigo-400' },
+                        { label: 'Apple TV+',   slug: 'apple-tv-plus', color: 'text-neutral-300'},
+                    ].map(({ label, slug, color }) => (
+                        <li key={slug}>
+                            <Link
+                                href={`/category/${slug}`}
+                                className={`${color} hover:brightness-125 transition-all block py-1 border-b border-neutral-800/50 font-medium`}
+                            >
+                                {label}
                             </Link>
                         </li>
                     ))}
