@@ -16,12 +16,17 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const movies = await prisma.movie.findMany({
-    select: { id: true, title: true },
-    orderBy: [{ year: 'desc' }, { createdAt: 'desc' }],
-    take: 50,
-  });
-  return movies.map((m) => ({ slug: movieSlug(m.title, m.id) }));
+  try {
+    const movies = await prisma.movie.findMany({
+      select: { id: true, title: true },
+      orderBy: [{ year: 'desc' }, { createdAt: 'desc' }],
+      take: 50,
+    });
+    return movies.map((m) => ({ slug: movieSlug(m.title, m.id) }));
+  } catch {
+    // DB not available at build time (e.g. Docker build) — pages render on demand
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
