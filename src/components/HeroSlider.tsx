@@ -21,37 +21,46 @@ export interface HeroMovie {
 }
 
 export default function HeroSlider({ movies }: { movies: HeroMovie[] }) {
-  const [current, setCurrent]       = useState(0);
-  const [paused, setPaused]         = useState(false);
-  const [showVideo, setShowVideo]   = useState(false);  // true after 2s on slide
-  const [muted, setMuted]           = useState(true);
-  const timerRef                    = useRef<ReturnType<typeof setInterval>>(undefined);
-  const videoTimerRef               = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const [current, setCurrent]     = useState(0);
+  const [hovered, setHovered]     = useState(false);
+  const [showVideo, setShowVideo] = useState(false);
+  const [muted, setMuted]         = useState(true);
+  const autoTimerRef              = useRef<ReturnType<typeof setInterval>>(undefined);
+  const videoTimerRef             = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const goTo = useCallback((i: number) => {
     setShowVideo(false);
+    clearTimeout(videoTimerRef.current);
     setCurrent((i + movies.length) % movies.length);
   }, [movies.length]);
 
   const next = useCallback(() => goTo(current + 1), [current, goTo]);
   const prev = useCallback(() => goTo(current - 1), [current, goTo]);
 
-  // Auto-advance
+  // Auto-advance only when NOT hovering
   useEffect(() => {
-    if (paused) return;
-    timerRef.current = setInterval(next, showVideo ? 30000 : 5500);
-    return () => clearInterval(timerRef.current);
-  }, [next, paused, showVideo]);
+    if (hovered) return;
+    autoTimerRef.current = setInterval(next, 5500);
+    return () => clearInterval(autoTimerRef.current);
+  }, [next, hovered]);
 
-  // Delay showing video so backdrop is visible first
+  // Video: starts 2s after hover begins, stops instantly on mouse-leave
   useEffect(() => {
-    setShowVideo(false);
     clearTimeout(videoTimerRef.current);
-    if (movies[current]?.trailerKey) {
+    if (hovered && movies[current]?.trailerKey) {
       videoTimerRef.current = setTimeout(() => setShowVideo(true), 2000);
+    } else {
+      setShowVideo(false);
     }
     return () => clearTimeout(videoTimerRef.current);
-  }, [current, movies]);
+  }, [hovered, current, movies]);
+
+  const handleMouseEnter = () => setHovered(true);
+  const handleMouseLeave = () => {
+    setHovered(false);
+    setShowVideo(false);
+    clearTimeout(videoTimerRef.current);
+  };
 
   if (!movies.length) return null;
 
@@ -63,8 +72,8 @@ export default function HeroSlider({ movies }: { movies: HeroMovie[] }) {
   return (
     <div
       className="relative w-full h-100 sm:h-120 md:h-135 overflow-hidden bg-black"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {/* ── Backdrop images (all pre-rendered, cross-fade via opacity) ── */}
       {movies.map((movie, i) => (
@@ -170,8 +179,8 @@ export default function HeroSlider({ movies }: { movies: HeroMovie[] }) {
         </button>
       )}
 
-      {/* ── Progress bar (only while image is showing, not during video) ── */}
-      {!paused && !showVideo && (
+      {/* ── Progress bar (only while auto-advancing, not on hover) ── */}
+      {!hovered && (
         <div className="absolute bottom-0 left-0 right-0 z-40 h-0.5 bg-white/10">
           <div
             key={current}

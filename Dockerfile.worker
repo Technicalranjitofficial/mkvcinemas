@@ -1,0 +1,16 @@
+# Lightweight worker image — runs ott-daily-import.mjs every 24h
+FROM node:20-alpine
+
+RUN apk add --no-cache openssl
+
+WORKDIR /app
+
+# Install deps first (layer cache)
+COPY package.json package-lock.json ./
+COPY prisma ./prisma/
+RUN npm ci
+
+# Copy only the scripts folder (not the full Next.js app)
+COPY scripts/ ./scripts/
+
+CMD ["node", "scripts/ott-daily-import.mjs"]

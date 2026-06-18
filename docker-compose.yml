@@ -17,6 +17,20 @@ services:
     networks:
       - mkvcinemas
 
+  # ── OTT Daily Import Worker ───────────────────────────────────────────────
+  # Fetches latest Netflix/Prime/Disney+/etc. titles every 24h and upserts DB
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: mkvcinemas_worker
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      TMDB_API_KEY: ${TMDB_API_KEY}
+    networks:
+      - mkvcinemas
+
   # ── Nginx Reverse Proxy ────────────────────────────────────────────────────
   nginx:
     image: nginx:1.27-alpine
