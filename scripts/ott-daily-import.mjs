@@ -62,6 +62,11 @@ function langToAudio(code) {
 // ── Utilities ─────────────────────────────────────────────────────────────
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+/** Returns today's date as YYYY-MM-DD */
+function today() {
+  return new Date().toISOString().split('T')[0];
+}
+
 async function tmdbFetch(path, params = {}) {
   const url = new URL(`${TMDB_BASE}${path}`);
   url.searchParams.set('api_key', TMDB_KEY);
@@ -101,12 +106,15 @@ async function fetchAllPages(platform, type) {
   process.stdout.write(`     ${type.padEnd(6)} [page `);
 
   while (page <= totalPages && page <= MAX_PAGES) {
+    // Only include titles already released (no upcoming/future releases)
+    const dateField = type === 'movie' ? 'primary_release_date' : 'first_air_date';
     const data = await tmdbFetch(`/discover/${type}`, {
-      with_watch_providers: platform.ids,
-      watch_region:         platform.region,
-      sort_by:              'popularity.desc',
-      'vote_count.gte':     2,
-      include_adult:        false,
+      with_watch_providers:      platform.ids,
+      watch_region:              platform.region,
+      sort_by:                   'popularity.desc',
+      'vote_count.gte':          2,
+      include_adult:             false,
+      [`${dateField}.lte`]:      today(),
       page,
     });
 
@@ -156,8 +164,11 @@ async function upsertTitle(tmdbResult, type, ottTag) {
   const title       = (type === 'movie' ? details.title   : details.name)?.trim();
   if (!title) return 'skip';
 
+  // ── Skip unreleased titles ───────────────────────────────────────────────
   const releaseDate = type === 'movie' ? details.release_date : details.first_air_date;
-  const year        = releaseDate ? parseInt(releaseDate.split('-')[0], 10) : new Date().getFullYear();
+  if (!releaseDate || releaseDate > today()) return 'skip';
+
+  const year        = parseInt(releaseDate.split('-')[0], 10);
   const plot        = details.overview?.trim() || 'No description available.';
   const rating      = Math.round((details.vote_average ?? 0) * 10) / 10;
   const posterUrl   = `https://image.tmdb.org/t/p/w500${details.poster_path}`;

@@ -143,11 +143,6 @@ export default function MovieCard({
                 <h3 className="text-sm font-medium text-neutral-200 line-clamp-2 group-hover:text-red-500 transition-colors leading-tight" title={title}>
                     {title}
                 </h3>
-                {plot && (
-                    <p className="mt-1 text-[11px] text-neutral-400 line-clamp-2 leading-relaxed hidden group-hover:block">
-                        {plot}
-                    </p>
-                )}
                 <p className="mt-1 text-[11px] text-neutral-500 truncate">{audio}</p>
             </div>
         </Link>
