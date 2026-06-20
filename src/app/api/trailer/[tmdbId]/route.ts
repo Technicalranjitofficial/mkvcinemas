@@ -14,7 +14,9 @@ export async function GET(
   try {
     const res = await fetch(
       `https://api.themoviedb.org/3/${type}/${tmdbId}/videos?api_key=${TMDB_KEY}`,
-      { next: { revalidate: 86400 } }
+      process.env.NODE_ENV === 'development'
+        ? { cache: 'no-store' }
+        : { next: { revalidate: 86400 } }
     );
     if (!res.ok) return NextResponse.json({ key: null });
 

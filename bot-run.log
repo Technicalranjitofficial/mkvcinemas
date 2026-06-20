@@ -1,0 +1,341 @@
+yarn run v1.22.22
+$ node --env-file=.env scripts/auto-import.mjs
+
+🎬  MKVCinemas Auto-Import Bot — 2026-06-01T17:20:21.522Z
+────────────────────────────────────────────────────────────
+📡  Fetching candidates…
+
+    ⚠  Retry 1/3 /trending/movie/day — fetch failed
+    ⚠  Retry 2/3 /trending/movie/day — fetch failed
+    ⚠  Trending Movies/Day p1: TMDB /trending/movie/day: fetch failed
+    Trending Movies/Day          →   0 fetched,   0 new
+    Trending Movies/Week         →  60 fetched,  58 new
+    Now Playing                  →  60 fetched,  30 new
+    Upcoming                     →  60 fetched,  40 new
+    Popular Movies               → 100 fetched,  49 new
+    Top Rated Movies             → 100 fetched,  89 new
+    Hindi 2026                   →  80 fetched,  66 new
+    Hindi 2025                   →  80 fetched,  78 new
+    Hindi 2024                   →  60 fetched,  60 new
+    Hindi 2023                   →  40 fetched,  38 new
+    Bhojpuri                     →   0 fetched,   0 new
+    Marathi                      →  60 fetched,  54 new
+    Bengali                      →  60 fetched,  57 new
+    Punjabi                      →  60 fetched,  60 new
+    Gujarati                     →  40 fetched,  38 new
+    Urdu                         →  40 fetched,  38 new
+    Nepali                       →  60 fetched,  60 new
+    Tamil 2026                   →  60 fetched,  57 new
+    Tamil 2025                   →  60 fetched,  60 new
+    Tamil 2024                   →  40 fetched,  40 new
+    Telugu 2026                  →  60 fetched,  59 new
+    Telugu 2025                  →  60 fetched,  59 new
+    Telugu 2024                  →  40 fetched,  40 new
+    Malayalam 2026               →  60 fetched,  57 new
+    Malayalam 2025               →  60 fetched,  60 new
+    Kannada 2026                 →  34 fetched,  33 new
+    Kannada 2025                 →  40 fetched,  39 new
+    Odia                         →  40 fetched,  40 new
+    Hollywood 2026               → 100 fetched,  38 new
+    Hollywood 2025               → 100 fetched,  78 new
+    Hollywood 2024               →  60 fetched,  55 new
+    Trending TV/Day [TV]         →  40 fetched,  39 new
+    Trending TV/Week [TV]        →  60 fetched,  25 new
+    TV On Air [TV]               →  60 fetched,  45 new
+    TV Popular [TV]              → 100 fetched,  66 new
+    TV Top Rated [TV]            → 100 fetched,  89 new
+    Hindi TV 2026 [TV]           →  60 fetched,  60 new
+    Hindi TV 2025 [TV]           →  60 fetched,  60 new
+    Tamil TV [TV]                →  60 fetched,  58 new
+    Telugu TV [TV]               →  60 fetched,  60 new
+    Malayalam TV [TV]            →  40 fetched,  40 new
+    Kannada TV [TV]              →  40 fetched,  36 new
+    Bengali TV [TV]              →  40 fetched,  37 new
+    English TV 2026 [TV]         →  80 fetched,  67 new
+    English TV 2025 [TV]         →  80 fetched,  72 new
+
+    Unique candidates : 2284  (1530 movies + 754 series)
+    DB already has : 1825 movies + 869 series
+
+🆕  274 new items to import  (182 movies + 92 series).
+
+    ⚠  Retry 1/3 /movie/1101383/credits — fetch failed
+🎬 [1]  The End of Oak Street (2026) — Hollywood, Action, Thriller
+🎬 [2]  K-Pops! (2026) — Hollywood, Comedy, Drama
+🎬 [3]  A Great Awakening (2026) — Hollywood, Drama
+🎬 [4]  Evil Dead Burn (2026) — Hollywood, Horror
+🎬 [5]  Memento (2000) — Hollywood, Thriller
+🎬 [6]  The Voice of Hind Rajab (2025) — Hollywood, Drama
+🎬 [7]  Ponyo (2008) — Hollywood, Comedy, Drama
+⏭   No poster/plot: WHO
+🎬 [8]  Dead Man's Wire (2026) — Hollywood, Thriller, Drama
+🎬 [9]  Leviticus (2026) — Hollywood, Horror
+🎬 [10]  Rape of Love (1978) — Hollywood, Drama
+🎬 [11]  La fotógrafa (2025) — Hollywood, Horror, Thriller
+🎬 [12]  Bosco d'amore (1981) — Hollywood, Drama
+🎬 [13]  Rascal Does Not Dream of a Dreaming Girl (2019) — Hollywood, Comedy, Drama
+⏭   No poster/plot: The Great Grand Superhero
+⏭   No poster/plot: Shakti Shalini
+⏭   No poster/plot: Lakadbaggha 2: The Monkey Business
+⏭   No poster/plot: Yeh Prem Mol Liya
+⏭   No poster/plot: Kumaari
+⏭   No poster/plot: बिहू अटैक
+⏭   No poster/plot: Ranger
+🎬 [14]  Lord Curzon Ki Haveli (2025) — Bollywood, Comedy, Thriller
+🎬 [15]  Jab Khuli Kitaab (2024) — Bollywood, Comedy, Drama
+🎬 [16]  Chhota Bheem and the Curse of Damyaan (2024) — Bollywood, Action, Drama, Comedy
+🎬 [17]  Ruslaan (2024) — Bollywood, Action
+🎬 [18]  Ae Watan Mere Watan (2024) — Bollywood, Drama, Thriller
+🎬 [19]  Ghoomer (2023) — Bollywood, Drama
+🎬 [20]  Kennedy (2023) — Bollywood, Thriller
+🎬 [21]  Stolen (2023) — Bollywood, Drama, Thriller
+🎬 [22]  Super Duperr (2026) — Bollywood
+🎬 [23]  Dashavatar (2025) — Bollywood, Drama, Thriller, Action
+🎬 [24]  Gadhvacha Lagna (2007) — Bollywood, Comedy
+🎬 [25]  De Dhakka 2 (2022) — Bollywood
+🎬 [26]  De Dhakka (2008) — Bollywood, Comedy, Drama
+🎬 [27]  The Disciple (2020) — Bollywood, Drama
+🎬 [28]  Medium Spicy (2022) — Bollywood, Drama
+⏭   No poster/plot: Prince: Once Upon a Time in Dhaka
+⏭   No poster/plot: Pratisodh
+⏭   No poster/plot: Female 5
+🎬 [29]  Rockstar (2026) — Bollywood, Drama
+🎬 [30]  Voyal (2024) — Bollywood
+🎬 [31]  Sharthopor (2025) — Bollywood, Drama
+🎬 [32]  Incomplete Breath (2020) — Bollywood, Drama
+🎬 [33]  Delupi (2025) — Bollywood, Drama
+🎬 [34]  Pagol Mon (2020) — Bollywood, Drama
+🎬 [35]  Deep6 (2021) — Bollywood, Drama
+🎬 [36]  Bhuto Purbo (2025) — Bollywood, Horror, Thriller
+🎬 [37]  Dhaka Attack (2017) — Bollywood, Action, Drama, Thriller
+🎬 [38]  Disco Singh (2014) — Bollywood, Comedy
+🎬 [39]  Chardikala (2026) — Bollywood
+🎬 [40]  Subedar Joginder Singh (2018) — Bollywood, Action, Drama
+🎬 [41]  Angrej (2015) — Bollywood, Comedy
+🎬 [42]  Ardaas Karaan (2019) — Bollywood, Drama
+🎬 [43]  Ikk Kudi (2025) — Bollywood, Comedy, Drama
+🎬 [44]  Surkhi Bindi (2019) — Bollywood, Drama
+🎬 [45]  Qismat (2018) — Bollywood, Comedy, Drama
+🎬 [46]  Shareek 2 (2022) — Bollywood
+🎬 [47]  Ardaas Sarbat De Bhale Di (2024) — Bollywood, Drama
+🎬 [48]  Kudi Haryane Val Di (2024) — Bollywood, Drama
+🎬 [49]  Illti (2025) — Bollywood, Comedy, Drama
+⏭   No poster/plot: Behadd
+⏭   No poster/plot: Vande Bharat Via USA
+⏭   No poster/plot: Common Man
+⏭   No poster/plot: Naseeb Ni Balihari
+🎬 [50]  Aum Mangalam Singlem (2022) — Bollywood, Drama
+🎬 [51]  Best of Luck Laalu (2017) — Bollywood, Comedy, Drama
+🎬 [52]  Chal Mann Jeetva Jaiye 2 (2023) — Bollywood, Drama
+⏭   No poster/plot: Vaanki Chuki Love Story
+🎬 [53]  Wrong Side Raju (2016) — Bollywood, Thriller, Drama
+🎬 [54]  Sadpara The Mountaineer (2021) — Bollywood, Drama, Comedy
+🎬 [55]  Miss 56 (1956) — Bollywood
+🎬 [56]  Razakar (2025) — Bollywood, Drama, Thriller
+🎬 [57]  Bin Roye (2015) — Bollywood, Drama
+🎬 [58]  Parde Mein Rehne Do (2022) — Bollywood, Comedy, Drama
+🎬 [59]  Load Wedding (2018) — Bollywood, Comedy, Drama
+🎬 [60]  Jawani Phir Nahi Ani (2015) — Bollywood, Drama, Action, Comedy
+🎬 [61]  Bir Bikram (2016) — Nepali, Thriller, Drama, Action
+🎬 [62]  Ghampani (2017) — Nepali, Drama
+🎬 [63]  Lakhey (2026) — Nepali, Drama
+🎬 [64]  Devi (2024) — Nepali, Drama
+⏭   No poster/plot: Shatru Gatey
+🎬 [65]  Outlaw - Dafa 219 (2025) — Nepali, Action, Drama
+🎬 [66]  The Twelve Thousand (2020) — Nepali, Drama
+🎬 [67]  Antim Sanskar: The Last Ritual (2023) — Nepali, Action, Thriller
+🎬 [68]  Chhakka Panja 4 (2023) — Nepali, Comedy
+🎬 [69]  The Secrets of Radha (2022) — Nepali, Drama
+🎬 [70]  Rajja Rani (2018) — Nepali, Drama
+🎬 [71]  Paral Ko Aago (2026) — Nepali, Drama
+🎬 [72]  Pahaad (2026) — Nepali, Drama
+🎬 [73]  Journey of a Red Fridge (2007) — Nepali, Drama
+🎬 [74]  Intu Mintu Londonma (2018) — Nepali, Drama
+🎬 [75]  The Black Hen (2015) — Nepali, Action, Drama
+🎬 [76]  Dasdhunga (2010) — Nepali, Drama
+🎬 [77]  Mask of Desire (2000) — Nepali, Drama, Horror
+🎬 [78]  Pashupati Prasad (2016) — Nepali, Drama, Comedy
+⏭   No poster/plot: Sigma
+⏭   No poster/plot: Demonte Colony 3
+⏭   No poster/plot: Seyon
+⏭   No poster/plot: Parimala & Co
+🎬 [79]  Thalaivar Thambi Thalaimaiyil (2026) — South Indian, Comedy, Drama
+⏭   No poster/plot: Veera Karruppu
+🎬 [80]  29 (2026) — South Indian, Drama, Comedy
+🎬 [81]  Chellamada Nee Enakku (2026) — South Indian, Drama
+🎬 [82]  Love Marriage (2025) — South Indian, Drama, Comedy
+⏭   No poster/plot: Titanic
+🎬 [83]  Rajakili (2024) — South Indian, Drama, Thriller, Comedy
+🎬 [84]  Yezhu Kadal Yezhu Malai (2024) — South Indian, Drama
+🎬 [85]  Soodhu Kavvum 2: Nadum Naatu Makkalum... (2024) — South Indian, Comedy, Thriller
+🎬 [86]  Ugly Story (2026) — South Indian, Drama, Thriller
+⏭   No poster/plot: Fauzi
+⏭   No poster/plot: Bad Boy Karthik
+⏭   No poster/plot: Ranabaali
+⏭   No poster/plot: Rowdy Janardhana
+⏭   No poster/plot: Itllu Arjuna
+🎬 [87]  Purushaha (2026) — South Indian, Comedy
+⏭   No poster/plot: Vishwambhara
+🎬 [88]  Sing Geetham (2026) — South Indian, Comedy, Drama
+🎬 [89]  Mareechika (2026) — South Indian, Drama, Thriller
+⏭   No poster/plot: Bhogi
+⏭   No poster/plot: Nagabandham
+🎬 [90]  Bhimaa (2024) — South Indian, Action, Drama
+⏭   No poster/plot: Mangampeta
+🎬 [91]  OMG: O Manchi Ghost (2024) — South Indian, Horror, Comedy
+⏭   No poster/plot: Varavu
+🎬 [92]  Karakkam (2026) — South Indian, Horror, Comedy
+⏭   No poster/plot: I'm Game
+⏭   No poster/plot: Anomie
+⏭   No poster/plot: Koodothram
+⏭   No poster/plot: Thudakkam
+⏭   No poster/plot: Uyir
+⏭   No poster/plot: Ee Thani Niram
+⏭   No poster/plot: I, Nobody
+⏭   No poster/plot: Bachelor Party D'eux
+🎬 [93]  Ananthan Kaadu (2026) — South Indian, Action, Thriller
+⏭   No poster/plot: Unmadham
+⏭   No poster/plot: Bethlehem Kudumba Unit
+🎬 [94]  Ima Chimmathe (2026) — South Indian, Thriller
+⏭   No poster/plot: Angam Attahasam
+⏭   No poster/plot: Operation Tral
+⏭   No poster/plot: Bhaskara Bharanam
+⏭   No poster/plot: ICU
+⏭   No poster/plot: Revolver Rinko
+🎬 [95]  അവിചാരിതം (2026) — South Indian, Comedy
+🎬 [96]  Tha Thavalayude Tha (2026) — South Indian, Drama
+⏭   No poster/plot: Kalyanamaram
+🎬 [97]  Theatre: The Myth of Reality (2025) — South Indian, Drama, Thriller
+🎬 [98]  Usual Fevers (2025) — South Indian, Drama, Thriller
+⏭   No poster/plot: The Ride
+⏭   No poster/plot: Adinaasam Vellapokkam
+⏭   No poster/plot: Page
+⏭   No poster/plot: Love Mocktail 3
+⏭   No poster/plot: Operation London Cafe
+🎬 [99]  The Rise Of Ashoka (2026) — South Indian, Action, Drama
+🎬 [100]  Lo Naveena (2026) — South Indian, Drama, Comedy
+⏭   No poster/plot: Claws and Teeth
+🎬 [101]  Just Married (2025) — South Indian, Drama, Comedy
+🎬 [102]  Andondittu Kaala (2025) — South Indian, Drama
+⏭   No poster/plot: Mandaar
+🎬 [103]  Nanda Master'nka Chatasali (2025) — South Indian, Drama
+⏭   No poster/plot: From Me To You
+⏭   No release date: Chandrama
+⏭   No poster/plot: Prem For Sale
+🎬 [104]  Biswaprakash (1999) — South Indian, Drama
+⏭   No poster/plot: IPS Durga
+🎬 [105]  Katha Deithili Maa Ku (2004) — South Indian, Drama, Action
+⏭   No poster/plot: Bohu Ama Bichhuati
+⏭   No poster/plot: Kalapahada
+⏭   No poster/plot: Baala: The Rhythm of Life
+🎬 [106]  Laxman Rekha (1996) — South Indian, Drama
+⏭   No poster/plot: Saptasajya
+⏭   No poster/plot: Bhaijaan
+⏭   No poster/plot: Radha
+⏭   No poster/plot: Priyara Pre-wedding Love Story
+⏭   No poster/plot: Jai Phula
+⏭   No poster/plot: Gapa Hele Bi Sata
+⏭   No poster/plot: Adina Megha
+🎬 [107]  Psycho Killer (2026) — Hollywood, Thriller, Horror
+🎬 [108]  Materialists (2025) — Hollywood, Drama
+🎬 [109]  Prep & Landing: The Snowball Protocol (2025) — Hollywood, Comedy, Drama
+🎬 [110]  MaXXXine (2024) — Hollywood, Horror, Thriller
+🎬 [111]  Hellboy: The Crooked Man (2024) — Hollywood, Drama, Horror, Action
+🎬 [112]  The Crow (2024) — Hollywood, Action, Drama, Horror
+📺 [113]  Doctor on the Edge (2026) — Web Series, Hollywood, Comedy, Drama
+📺 [114]  Reborn Rookie (2026) — Web Series, Hollywood, Drama, Action
+📺 [115]  Filing for Love (2026) — Web Series, Hollywood, Comedy, Drama
+📺 [116]  Daha 17 (2026) — Web Series, Hollywood, Drama, Comedy
+⏭   No poster/plot: 沧元图
+📺 [117]  Ici tout commence (2020) — Web Series, Hollywood, Drama
+📺 [118]  Double Helix (2026) — Web Series, Hollywood, Drama
+📺 [119]  Secret Lives (1999) — Web Series, Drama
+📺 [120]  Chronicles of the Sun (2018) — Web Series, Hollywood, Drama
+📺 [121]  WWE NXT (2010) — Web Series, Hollywood, Action, Drama
+📺 [122]  Late Show with David Letterman (1993) — Web Series, Hollywood, Drama, Comedy
+📺 [123]  My Wife Has No Emotion (2024) — Web Series, Hollywood, Comedy, Action, Drama
+📺 [124]  Young Hearts (1995) — Web Series, Hollywood, Drama, Comedy
+📺 [125]  Star Trek (1966) — Web Series, Hollywood, Action, Drama
+📺 [126]  Secret Mission - Undercover Agents Never Back Down! (2023) — Web Series, Hollywood, Comedy
+📺 [127]  Homeland (2011) — Web Series, Hollywood, Drama, Action, Thriller
+📺 [128]  The Graham Norton Show (2007) — Web Series, Hollywood, Comedy, Drama
+📺 [129]  Call the Midwife (2012) — Web Series, Hollywood, Drama
+⏭   No poster/plot: Desafío Champions Sendokai
+⏭   No poster/plot: Les Contes de la rue Broca
+⏭   No poster/plot: Pritam and Pedro
+⏭   No poster/plot: Brown
+📺 [130]  Raakh (2026) — Web Series, Bollywood, Thriller, Drama
+⏭   No poster/plot: Made in India – A Titan Story
+⏭   No poster/plot: Ishq Junooni
+📺 [131]  Shekhar Tonite (2026) — Web Series, Bollywood, Drama, Comedy
+⏭   No poster/plot: The Pyramid Scheme
+⏭   No poster/plot: Pati Anaadi
+⏭   No poster/plot: Seven and A Half Dates
+⏭   No poster/plot: Tees Ke Paar Jab Mila Pyaar
+📺 [132]  Ghar Tera Mera (2026) — Web Series, Bollywood, Comedy, Drama
+⏭   No poster/plot: Saajan Ghar
+⏭   No poster/plot: Pati Bhramachari
+⏭   No poster/plot: Haale Dil
+📺 [133]  Rangeen (2025) — Web Series, Bollywood, Drama, Comedy
+⏭   No poster/plot: Kalyana Veedu
+⏭   No poster/plot: Vera Maari Office
+⏭   No release date: Akka
+⏭   No poster/plot: Minnale
+⏭   No poster/plot: Andal Azhagar
+⏭   No poster/plot: Nayagi
+📺 [134]  Anantham (2022) — Web Series, South Indian, Drama
+📺 [135]  Mad Company (2022) — Web Series, South Indian, Comedy, Drama
+📺 [136]  Kuttram Purindhavan (2025) — Web Series, South Indian, Thriller
+📺 [137]  Yeda Loyallo Indradhanasu (2023) — Web Series, South Indian, Drama
+📺 [138]  Story Discussion (2017) — Web Series, South Indian, Comedy, Drama
+📺 [139]  Bahishkarana (2024) — Web Series, South Indian, Thriller, Drama
+⏭   No poster/plot: Intinti Gruhalakshmi
+📺 [140]  Ishmart Jodi (2020) — Web Series, South Indian, Drama
+📺 [141]  Recce (2022) — Web Series, South Indian, Thriller, Drama
+📺 [142]  Anger Tales (2023) — Web Series, South Indian, Drama, Comedy
+📺 [143]  AIR (2025) — Web Series, South Indian, Drama, Comedy
+⏭   No release date: Geetha Subramanyam
+⏭   No poster/plot: Thinkal Kalamaan
+⏭   No poster/plot: Ente Maathavu
+⏭   No poster/plot: Swantham Sujatha
+📺 [144]  Plus Two Class (2019) — Web Series, South Indian, Comedy
+⏭   No poster/plot: Barroz & Voodoo
+⏭   No poster/plot: Erivum Puliyum
+📺 [145]  Doosra (2020) — Web Series, South Indian, Comedy
+⏭   No poster/plot: Eyes
+⏭   No poster/plot: Nammal
+⏭   No poster/plot: Uppum Mulakum
+📺 [146]  Circus (2022) — Web Series, South Indian, Comedy
+📺 [147]  DJ (2020) — Web Series, South Indian, Comedy
+⏭   No poster/plot: Mayamruga
+⏭   No poster/plot: Balakrishna
+⏭   No poster/plot: Matte Vasanta
+⏭   No poster/plot: Robo Sose
+⏭   No release date: Chittara Star Awards 2025
+⏭   No poster/plot: Paaru
+⏭   No poster/plot: S/O Savithramma
+⏭   No poster/plot: Nagakannike
+⏭   No poster/plot: Besuge
+⏭   No poster/plot: Radha Krishna
+⏭   No poster/plot: Akashadeepa
+⏭   No poster/plot: Tripura Sundari
+⏭   No poster/plot: Ramachari
+⏭   No poster/plot: Sa Re Ga Ma Pa Championship
+⏭   No poster/plot: Bombat Bhojana
+⏭   No poster/plot: Bigg Boss Kannada
+⏭   No poster/plot: Bigg Boss Kannada
+📺 [148]  Naagamandala (2024) — Web Series, South Indian, Drama
+📺 [149]  Sohagjol (2022) — Web Series, Bollywood, Drama
+📺 [150]  Meyebela (2023) — Web Series, Bollywood, Drama
+⏭   No poster/plot: Lokkhi Kakima Superstar
+📺 [151]  Dance Dance Junior (2019) — Web Series, Bollywood, Drama
+📺 [152]  Saat Paake Bandha (2010) — Web Series, Bollywood, Drama
+⏭   No poster/plot: Seemarekha
+📺 [153]  Kevin (2026) — Web Series, Hollywood, Comedy, Action
+📺 [154]  Death by Lightning (2025) — Web Series, Hollywood, Drama, Thriller
+📺 [155]  Dope Thief (2025) — Web Series, Hollywood, Thriller, Drama
+
+────────────────────────────────────────────────────────────
+🏁  Done!  Added: 155  Skipped: 119  Failed: 0
+
+Done in 284.01s.

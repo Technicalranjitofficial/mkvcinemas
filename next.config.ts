@@ -30,10 +30,10 @@ const nextConfig: NextConfig = {
   // Reduce bundle size with tree-shaking for icon libraries
   experimental: {
     optimizePackageImports: ['lucide-react'],
-    // Client-side router cache: hold dynamic routes 30s, static 3 min
+    // Client-side router cache: disable dynamic on dev, set static to minimum 30s
     staleTimes: {
-      dynamic: 30,
-      static: 180,
+      dynamic: process.env.NODE_ENV === 'development' ? 0 : 30,
+      static: process.env.NODE_ENV === 'development' ? 30 : 180,
     },
   },
 
@@ -63,7 +63,7 @@ const nextConfig: NextConfig = {
           { key: 'Referrer-Policy',        value: 'strict-origin-when-cross-origin' },
           {
             key: 'Permissions-Policy',
-            value: 'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()',
+            value: 'fullscreen=*, accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()',
           },
         ],
       },

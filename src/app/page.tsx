@@ -102,9 +102,12 @@ async function getHeroMovies(): Promise<HeroMovie[]> {
     candidates.map(async (m) => {
       const type = m.categories.includes('Web Series') ? 'tv' : 'movie';
       try {
+        const fetchOptions = process.env.NODE_ENV === 'development'
+          ? { cache: 'no-store' as const }
+          : { next: { revalidate: 86400 } };
         const [detailRes, videoRes] = await Promise.all([
-          fetch(`https://api.themoviedb.org/3/${type}/${m.tmdbId}?api_key=${TMDB_KEY}`, { next: { revalidate: 86400 } }),
-          fetch(`https://api.themoviedb.org/3/${type}/${m.tmdbId}/videos?api_key=${TMDB_KEY}`, { next: { revalidate: 86400 } }),
+          fetch(`https://api.themoviedb.org/3/${type}/${m.tmdbId}?api_key=${TMDB_KEY}`, fetchOptions),
+          fetch(`https://api.themoviedb.org/3/${type}/${m.tmdbId}/videos?api_key=${TMDB_KEY}`, fetchOptions),
         ]);
         if (!detailRes.ok) return null;
         const data = await detailRes.json();

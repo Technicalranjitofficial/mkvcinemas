@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Play, Monitor, ChevronDown, Tv } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Play, Monitor, ChevronDown, Tv, Maximize, Minimize } from 'lucide-react';
 import { EMBED_PROVIDERS, ProviderKey, EmbedQuery } from '@/utils/embedProviders';
 
 interface Season {
@@ -31,7 +31,27 @@ export default function VideoEmbedPlayer({ media, seasons = [] }: VideoEmbedPlay
   // Prevent SSR — iframe must only render on the client so the embed URL is
   // never baked into server HTML (avoids hydration mismatch and own-page flash)
   const [mounted, setMounted] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   useEffect(() => { setMounted(true); }, []);
+
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onChange);
+    return () => document.removeEventListener('fullscreenchange', onChange);
+  }, []);
+
+  const handleFullscreen = useCallback(() => {
+    if (isFullscreen) {
+      document.exitFullscreen();
+    } else {
+      const el = wrapperRef.current;
+      if (!el) return;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if ((el as any).webkitRequestFullscreen) (el as any).webkitRequestFullscreen();
+    }
+  }, [isFullscreen]);
 
   const isTV = media.type === 'tv';
   const resolvedSeasons = isTV ? (seasons.length > 0 ? seasons : FALLBACK_SEASONS) : [];
@@ -123,20 +143,31 @@ export default function VideoEmbedPlayer({ media, seasons = [] }: VideoEmbedPlay
       )}
 
       {/* 16:9 Aspect Ratio Wrapper */}
-      <div className="relative w-full aspect-video bg-neutral-950">
+      <div ref={wrapperRef} className="relative w-full aspect-video bg-neutral-950 group">
         {mounted ? (
           <iframe
+            ref={iframeRef}
             key={`${activeProvider}-${media.id}-${activeSeason}-${activeEpisode}`}
             src={getEmbedUrl()}
             className="absolute inset-0 w-full h-full border-0"
             allowFullScreen
             allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
-            referrerPolicy="no-referrer"
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-10 h-10 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
           </div>
+        )}
+        {/* Fullscreen button — triggers from parent page, works for all servers */}
+        {mounted && (
+          <button
+            onClick={handleFullscreen}
+            title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
+            className="absolute top-4 right-4 z-10 bg-black/70 hover:bg-black/95 text-white rounded-lg px-4 py-2.5 flex items-center gap-2 text-sm font-semibold transition-colors shadow-lg border border-white/10"
+          >
+            {isFullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+            {isFullscreen ? 'Exit' : 'Fullscreen'}
+          </button>
         )}
       </div>
 

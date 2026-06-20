@@ -32,6 +32,12 @@ export interface TmdbMovieDetails {
 }
 
 
+const getFetchOptions = (revalidateSeconds: number) => {
+    return process.env.NODE_ENV === 'development'
+        ? { cache: 'no-store' as const }
+        : { next: { revalidate: revalidateSeconds } };
+};
+
 export async function searchTmdb(query: string): Promise<TmdbSearchResult[]> {
     const apiKey = process.env.TMDB_API_KEY;
     if (!apiKey || apiKey === 'your_tmdb_api_key_here' || !query.trim()) return [];
@@ -92,7 +98,7 @@ export async function getTrendingMovies(): Promise<TmdbSearchResult[]> {
     try {
         const res = await fetch(
             `https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}&language=en-US`,
-            { next: { revalidate: 3600 } }
+            getFetchOptions(3600)
         );
         if (!res.ok) return [];
         const data = await res.json();
@@ -107,7 +113,7 @@ export async function getMoviesByLanguage(lang: string): Promise<TmdbSearchResul
     try {
         const res = await fetch(
             `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_original_language=${lang}&sort_by=popularity.desc&language=en-US`,
-            { next: { revalidate: 3600 } }
+            getFetchOptions(3600)
         );
         if (!res.ok) return [];
         const data = await res.json();
@@ -139,7 +145,7 @@ export async function getTrendingTv(): Promise<TmdbTvResult[]> {
     try {
         const res = await fetch(
             `https://api.themoviedb.org/3/trending/tv/week?api_key=${apiKey}&language=en-US`,
-            { next: { revalidate: 3600 } }
+            getFetchOptions(3600)
         );
         if (!res.ok) return [];
         const data = await res.json();
@@ -153,7 +159,7 @@ export async function getTvByLanguage(lang: string): Promise<TmdbTvResult[]> {
     try {
         const res = await fetch(
             `https://api.themoviedb.org/3/discover/tv?api_key=${apiKey}&with_original_language=${lang}&sort_by=popularity.desc&language=en-US`,
-            { next: { revalidate: 3600 } }
+            getFetchOptions(3600)
         );
         if (!res.ok) return [];
         const data = await res.json();
@@ -168,7 +174,7 @@ export async function getTmdbTvSeasons(tmdbId: string): Promise<TmdbTvSeason[]> 
     try {
         const res = await fetch(
             `https://api.themoviedb.org/3/tv/${tmdbId}?api_key=${apiKey}&language=en-US`,
-            { next: { revalidate: 86400 } }
+            getFetchOptions(86400)
         );
         if (!res.ok) return [];
         const data = await res.json();

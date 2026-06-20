@@ -9,7 +9,8 @@ import { Metadata } from 'next';
 import { getTmdbTvSeasons } from '@/app/actions/tmdb';
 import { extractMovieId, movieSlug } from '@/lib/slug';
 
-export const revalidate = 300;
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
 
 interface Props {
   params: Promise<{ slug: string }>;
